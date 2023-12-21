@@ -1,12 +1,15 @@
-﻿namespace TyphoonHil.Exceptions;
+﻿using System;
 
-public class FirmwareManagerAPIException : Exception
+namespace TyphoonHil.Exceptions
 {
-    public FirmwareManagerAPIException(string message) : base(message)
+    public class FirmwareManagerAPIException : Exception
     {
-    }
+        public FirmwareManagerAPIException(string message) : base(message)
+        {
+        }
 
-    public FirmwareManagerAPIException() : base()
-    {
+        public FirmwareManagerAPIException() : base()
+        {
+        }
     }
 }

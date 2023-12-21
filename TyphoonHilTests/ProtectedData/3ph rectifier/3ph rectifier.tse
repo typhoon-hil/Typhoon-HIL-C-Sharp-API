@@ -6,7 +6,7 @@ version = 4.2
 
 model "3ph rectifier" {
     configuration {
-        hil_device = "HIL402"
+        hil_device = "VHIL+"
         hil_configuration_id = 1
         simulation_method = exact
         simulation_time_step = auto
@@ -83,6 +83,7 @@ model "3ph rectifier" {
         }
         [
             position = 2048, 2032
+            size = 127, 256
         ]
 
         component "core/Resistor" Rload {
@@ -112,12 +113,14 @@ model "3ph rectifier" {
         }
         [
             position = 2192, 1936
+            size = 64, 32
         ]
 
         component "core/Three Phase Voltage Source" Vgrid {
         }
         [
             position = 1672, 2032
+            size = 62, 256
         ]
 
         component "core/Voltage Measurement" Va1 {
@@ -127,24 +130,28 @@ model "3ph rectifier" {
         [
             position = 2464, 2032
             rotation = right
+            size = 64, 32
         ]
 
         component "core/Current Measurement" Ia1 {
         }
         [
             position = 1784, 1936
+            size = 64, 32
         ]
 
         component "core/Current Measurement" Ia2 {
         }
         [
             position = 1784, 2032
+            size = 64, 32
         ]
 
         component "core/Current Measurement" Ia3 {
         }
         [
             position = 1784, 2128
+            size = 64, 32
         ]
 
         junction Junction1 pe

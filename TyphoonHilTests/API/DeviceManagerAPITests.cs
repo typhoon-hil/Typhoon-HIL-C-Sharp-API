@@ -1,42 +1,47 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using TyphoonHil.API;
 
-namespace TyphoonHilTests.API;
-
-[TestClass]
-public class DeviceManagerAPITests
+namespace TyphoonHilTests.API
 {
-    [TestMethod]
-    public void SetDeviceSettingsTest()
+    [TestClass]
+    public class DeviceManagerAPITests
     {
-        var model = new DeviceManagerAPI();
-        Assert.IsTrue(model.AddDevicesToSetup());
-        var devices = model.GetDetectedDevices();
-        if (devices.Count == 0)
+        public DeviceManagerAPITests() { }
+
+
+        [TestMethod]
+        public void SetDeviceSettingsTest()
         {
-            Console.WriteLine("here");
-            Assert.IsFalse(model.IsSetupConnected());
+            var model = new DeviceManagerAPI();
+            Assert.IsTrue(model.AddDevicesToSetup());
+            var devices = model.GetDetectedDevices();
+            if (devices.Count == 0)
+            {
+                Console.WriteLine("here");
+                Assert.IsFalse(model.IsSetupConnected());
+            }
+
+            model.GetSetupDevicesSerials().ForEach(Console.WriteLine);
+            Console.WriteLine(model.GetHilInfo());
+            Console.WriteLine(model.GetSetupDevices());
+            model.GetSetupDevicesSerials().ForEach(Console.WriteLine);
+            //Console.WriteLine(model.GetDeviceSettings());
+            Assert.IsTrue(model.AddDiscoveryIpAddresses());
+            //Assert.IsTrue(model.RemoveDiscoveryIpAddresses());
         }
 
-        model.GetSetupDevicesSerials().ForEach(Console.WriteLine);
-        Console.WriteLine(model.GetHilInfo());
-        Console.WriteLine(model.GetSetupDevices());
-        model.GetSetupDevicesSerials().ForEach(Console.WriteLine);
-        //Console.WriteLine(model.GetDeviceSettings());
-        Assert.IsTrue(model.AddDiscoveryIpAddresses());
-        //Assert.IsTrue(model.RemoveDiscoveryIpAddresses());
-    }
+        [TestMethod]
+        public void GeneralTest()
+        {
+            var model = new DeviceManagerAPI();
+            model.AddDevicesToSetup();
+            //model.ConnectSetup();
+            //model.DisconnectSetup();
+            model.RemoveDevicesFromSetup();
+            Console.WriteLine(model.GetAvailableDevices());
+            Console.WriteLine(model.GetDetectedDevices());
 
-    [TestMethod]
-    public void GeneralTest()
-    {
-        var model = new DeviceManagerAPI();
-        model.AddDevicesToSetup();
-        //model.ConnectSetup();
-        //model.DisconnectSetup();
-        model.RemoveDevicesFromSetup();
-        Console.WriteLine(model.GetAvailableDevices());
-        Console.WriteLine(model.GetDetectedDevices());
-
+        }
     }
 }

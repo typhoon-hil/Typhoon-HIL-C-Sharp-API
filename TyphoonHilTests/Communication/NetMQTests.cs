@@ -1,15 +1,16 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TyphoonHil.API;
 
-namespace TyphoonHilTests.Communication;
-
-[TestClass]
-public class NetMQTests
+namespace TyphoonHilTests.Communication
 {
-    [TestMethod]
-    public void GeneralTest()
+    [TestClass]
+    public class NetMQTests
     {
-        var mdl = new SchematicAPI();
-        mdl.CreateNewModel("test");
+        [TestMethod]
+        public void GeneralTest()
+        {
+            var mdl = new SchematicAPI();
+            mdl.CreateNewModel("test");
+        }
     }
 }

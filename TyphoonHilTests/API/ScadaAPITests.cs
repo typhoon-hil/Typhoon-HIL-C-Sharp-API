@@ -1,124 +1,129 @@
-﻿using System.Diagnostics;
-using System.Drawing.Drawing2D;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TyphoonHil.API;
 using TyphoonHil.Exceptions;
-using Path = System.IO.Path;
+using TyphoonHilTests.Utils;
 
-namespace TyphoonHilTests.API;
-
-[TestClass]
-public class ScadaAPITests
+namespace TyphoonHilTests.API
 {
-    public required ScadaAPI Model { get; set; }
-    public required string StartupPath { get; set; }
-    public required string TestDataPath { get; set; }
-    public required string ProtectedDataPath { get; set; }
-
-    [TestInitialize]
-    public void Init()
+    [TestClass]
+    public class ScadaAPITests
     {
-        Model = new ScadaAPI();
-        StartupPath = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.FullName;
-        TestDataPath = Path.Combine(StartupPath, "TestData");
-        ProtectedDataPath = Path.Combine(StartupPath, "ProtectedData");
+        public ScadaAPITests() { }
 
-        SchematicAPITests.ClearDirectory(TestDataPath);
-    }
+        public ScadaAPI Model { get; set; }
+        public string StartupPath { get; set; }
+        public string TestDataPath { get; set; }
+        public string ProtectedDataPath { get; set; }
 
-    [TestMethod]
-    public void AddLibraryPathTest()
-    {
-        Assert.IsFalse(false);
-    }
+        [TestInitialize]
+        public void Init()
+        {
+            Model = new ScadaAPI();
+            StartupPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            TestDataPath = Path.Combine(StartupPath, "TestData");
+            ProtectedDataPath = Path.Combine(StartupPath, "ProtectedData");
 
-    [TestMethod]
-    public void GeneralTest()
-    {
-        const string panelName = "3ph rectifier.cus";
-        var targetFilePath = Path.Combine(ProtectedDataPath, "3ph rectifier", panelName);
-        var scadaApi = new ScadaAPI();
-        Assert.ThrowsException<ScadaAPIException>(() => scadaApi.LoadPanel("not_existing_file_path"));
-        scadaApi.LoadPanel(targetFilePath);
+            if (Directory.Exists(TestDataPath)) TestUtils.ClearDirectory(TestDataPath);
+        }
 
-        var widgetHandle = scadaApi.GetWidgetById("76555d9ee1ac11e7b3407085c23c3b8d");
-        Assert.IsNotNull(widgetHandle);
+        [TestMethod]
+        public void AddLibraryPathTest()
+        {
+            Assert.IsFalse(false);
+        }
 
-        scadaApi.SetPropertyValue(widgetHandle, ScadaConstants.Name, "New widget name");
-        Assert.AreEqual(Model.GetPropertyValue(widgetHandle, ScadaConstants.Name), "New widget name");
+        [TestMethod]
+        public void GeneralTest()
+        {
+            const string panelName = "3ph rectifier.cus";
+            var targetFilePath = Path.Combine(ProtectedDataPath, "3ph rectifier", panelName);
+            var scadaApi = new ScadaAPI();
+            Assert.ThrowsException<ScadaAPIException>(() => scadaApi.LoadPanel("not_existing_file_path"));
+            scadaApi.LoadPanel(targetFilePath);
 
-        Assert.ThrowsException<ScadaAPIException>(
-            () => scadaApi.SetPropertyValue(widgetHandle, ScadaConstants.Name, new[] { 56, 28, 89 }));
+            var widgetHandle = scadaApi.GetWidgetById("76555d9ee1ac11e7b3407085c23c3b8d");
+            Assert.IsNotNull(widgetHandle);
 
-        scadaApi.SavePanel();
-        scadaApi.SavePanelAs(targetFilePath);
-    }
+            scadaApi.SetPropertyValue(widgetHandle, ScadaConstants.Name, "New widget name");
+            Assert.AreEqual(Model.GetPropertyValue(widgetHandle, ScadaConstants.Name), "New widget name");
 
-    [TestMethod]
-    public void LibraryTests()
-    {
-        Model.AddLibraryPath(Path.Combine(ProtectedDataPath, "user_lib"));
-        Model.ReloadLibraries();
-        Model.RemoveLibraryPath(Path.Combine(ProtectedDataPath, "user_lib"));
-        Model.GetLibraryPaths().ForEach(Console.WriteLine);
-    }
+            Assert.ThrowsException<ScadaAPIException>(
+                () => scadaApi.SetPropertyValue(widgetHandle, ScadaConstants.Name, new[] { 56, 28, 89 }));
 
-    [TestMethod]
-    public void WidgetTests()
-    {
-        Model.CreateNewPanel();
+            scadaApi.SavePanel();
+            scadaApi.SavePanelAs(targetFilePath);
+        }
 
-        var groupHandle = Model.CreateWidget(widgetType: ScadaConstants.WtGroup, name: "Group for other widgets",
-            position: new(0, 200));
+        [TestMethod]
+        public void LibraryTests()
+        {
+            Model.AddLibraryPath(Path.Combine(ProtectedDataPath, "user_lib"));
+            Model.ReloadLibraries();
+            Model.RemoveLibraryPath(Path.Combine(ProtectedDataPath, "user_lib"));
+            Model.GetLibraryPaths().ForEach(Console.WriteLine);
+        }
 
-        var digDHandle = Model.CreateWidget(widgetType: ScadaConstants.WtDigital, parent: groupHandle,
-            name: "Digital Display", position: new(20, 20));
+        [TestMethod]
+        public void WidgetTests()
+        {
+            Model.CreateNewPanel();
 
-    }
+            var groupHandle = Model.CreateWidget(widgetType: ScadaConstants.WtGroup, name: "Group for other widgets",
+                position: new Tuple<int, int>(0, 200));
 
-    [TestMethod]
-    public void PanelTests()
-    {
-        Model.CreateNewPanel();
-        var digDHandle = Model.CreateWidget(widgetType: ScadaConstants.WtDigital,
-            name: "Digital Display", position: new(20, 20));
+            var digDHandle = Model.CreateWidget(widgetType: ScadaConstants.WtDigital, parent: groupHandle,
+                name: "Digital Display", position: new Tuple<int, int>(20, 20));
 
-        Model.SavePanelAs(Path.Combine(TestDataPath, "panel.cus"));
-        Model.SavePanel();
-    }
+        }
 
-    [TestMethod]
-    public void LibraryPanelTest()
-    {
-        Model.CreateNewLibraryPanel("Lib1", "My simple lib");
-        
-        var groupHandle = Model.CreateWidget(widgetType: ScadaConstants.WtGroup, name: "Group for other widgets",
-            position: new(0, 200));
+        [TestMethod]
+        public void PanelTests()
+        {
+            Model.CreateNewPanel();
+            var digDHandle = Model.CreateWidget(widgetType: ScadaConstants.WtDigital,
+                name: "Digital Display", position: new Tuple<int, int>(20, 20));
 
-        var digDHandle = Model.CreateWidget(widgetType: ScadaConstants.WtDigital, parent: groupHandle,
-            name: "Digital Display", position: new(20, 20));
+            Model.SavePanelAs(Path.Combine(TestDataPath, "panel.cus"));
+            Model.SavePanel();
+        }
 
-        Model.SavePanelAs(Path.Combine(TestDataPath, "lib1.wlib"));
-        Model.LoadLibraryPanel(Path.Combine(TestDataPath, "lib1.wlib"));
-    }
+        [TestMethod]
+        public void LibraryPanelTest()
+        {
+            Model.CreateNewLibraryPanel("Lib1", "My simple lib");
 
-    [TestMethod]
-    public void CopyTest()
-    {
-        Model.CreateNewPanel();
-        var groupHandle = Model.CreateWidget(widgetType: ScadaConstants.WtGroup, name: "Group for other widgets",
-            position: new(0, 200));
+            var groupHandle = Model.CreateWidget(widgetType: ScadaConstants.WtGroup, name: "Group for other widgets",
+                position: new Tuple<int, int>(0, 200));
 
-        var digDHandle = Model.CreateWidget(widgetType: ScadaConstants.WtDigital,
-            name: "Digital Display", position: new(20, 20));
+            var digDHandle = Model.CreateWidget(widgetType: ScadaConstants.WtDigital, parent: groupHandle,
+                name: "Digital Display", position: new Tuple<int, int>(20, 20));
 
-        var copiedWidgets = Model.Copy(srcHandle: digDHandle, dstHandle:groupHandle, name: "New name", position:new(0, 304));
-        Console.WriteLine(copiedWidgets);
+            Model.SavePanelAs(Path.Combine(TestDataPath, "lib1.wlib"));
+            Model.LoadLibraryPanel(Path.Combine(TestDataPath, "lib1.wlib"));
+        }
 
-        copiedWidgets = Model.Copy(srcHandle: digDHandle, name: "New name", position: new(0, 304));
-        Console.WriteLine(copiedWidgets);
+        [TestMethod]
+        public void CopyTest()
+        {
+            Model.CreateNewPanel();
+            var groupHandle = Model.CreateWidget(widgetType: ScadaConstants.WtGroup, name: "Group for other widgets",
+                position: new Tuple<int, int>(0, 200));
 
-        Model.DeleteWidget(digDHandle);
+            var digDHandle = Model.CreateWidget(widgetType: ScadaConstants.WtDigital,
+                name: "Digital Display", position: new Tuple<int, int>(20, 20));
+
+            var copiedWidgets = Model.Copy(srcHandle: digDHandle, dstHandle: groupHandle, 
+                name: "New name", position: new Tuple<int, int>(0, 304));
+            Console.WriteLine(copiedWidgets);
+
+            copiedWidgets = Model.Copy(srcHandle: digDHandle, name: "New name", position: new Tuple<int, int>(0, 304));
+            Console.WriteLine(copiedWidgets);
+
+            Model.DeleteWidget(digDHandle);
+        }
     }
 }

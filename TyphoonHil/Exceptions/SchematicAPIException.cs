@@ -1,12 +1,15 @@
-﻿namespace TyphoonHil.Exceptions;
+﻿using System;
 
-public class SchematicAPIException : Exception
+namespace TyphoonHil.Exceptions
 {
-    public SchematicAPIException()
+    public class SchematicAPIException : Exception
     {
-    }
+        public SchematicAPIException()
+        {
+        }
 
-    public SchematicAPIException(string message) : base(message)
-    {
+        public SchematicAPIException(string message) : base(message)
+        {
+        }
     }
 }

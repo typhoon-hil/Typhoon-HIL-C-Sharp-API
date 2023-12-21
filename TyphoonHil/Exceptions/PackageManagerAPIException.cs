@@ -1,12 +1,15 @@
-﻿namespace TyphoonHil.Exceptions;
+﻿using System;
 
-public class PackageManagerAPIException : Exception
+namespace TyphoonHil.Exceptions
 {
-    public PackageManagerAPIException()
+    public class PackageManagerAPIException : Exception
     {
-    }
+        public PackageManagerAPIException()
+        {
+        }
 
-    public PackageManagerAPIException(string message) : base(message)
-    {
+        public PackageManagerAPIException(string message) : base(message)
+        {
+        }
     }
 }

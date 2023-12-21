@@ -1,26 +1,33 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using TyphoonHil.API;
+using TyphoonHilTests.Utils;
 
 namespace TyphoonHilTests.API
 {
     [TestClass]
     public class ConfigurationManagerAPITests
     {
-        public required ConfigurationManagerAPI Model { get; set; }
-        public required string StartupPath { get; set; }
-        public required string TestDataPath { get; set; }
-        public required string ProtectedDataPath { get; set; }
+        public ConfigurationManagerAPITests() { }
+
+        public ConfigurationManagerAPI Model { get; set; }
+        public string StartupPath { get; set; }
+        public string TestDataPath { get; set; }
+        public string ProtectedDataPath { get; set; }
 
         [TestInitialize]
         public void Init()
         {
             Model = new ConfigurationManagerAPI();
-            StartupPath = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.FullName;
+            StartupPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             TestDataPath = Path.Combine(StartupPath, "TestData");
             ProtectedDataPath = Path.Combine(StartupPath, "ProtectedData");
 
-            SchematicAPITests.ClearDirectory(TestDataPath);
+            if (Directory.Exists(TestDataPath)) TestUtils.ClearDirectory(TestDataPath);
         }
 
         [TestMethod]
@@ -32,33 +39,33 @@ namespace TyphoonHilTests.API
             var outPath = Path.Combine(basePath,"output");
 
             var prj = Model.LoadProject(prjFile);
-            List<JObject> cfgs = new()
+            List<JObject> cfgs = new List<JObject>()
             {
                 Model.CreateConfig("PFE_IM_LP")
             };
 
-            Model.Picks(cfgs[^1], new List<JObject>
+            Model.Picks(cfgs[cfgs.Count - 1], new List<JObject>
             {
                 Model.MakePick("Rectifier", "Diode rectifier"),
                 Model.MakePick("Motor", "Induction low power")
             });
 
             cfgs.Add(Model.CreateConfig("AFE_IM_LP"));
-            Model.Picks(cfgs[^1], new List<JObject>
+            Model.Picks(cfgs[cfgs.Count - 1], new List<JObject>
             {
                 Model.MakePick("Rectifier", "Thyristor rectifier"),
                 Model.MakePick("Motor", "Induction low power")
             });
 
             cfgs.Add(Model.CreateConfig("PFE_PMSM_LP"));
-            Model.Picks(cfgs[^1], new List<JObject>
+            Model.Picks(cfgs[cfgs.Count - 1], new List<JObject>
             {
                 Model.MakePick("Rectifier", "Diode rectifier"),
                 Model.MakePick("Motor", "PMSM low power")
             });
 
             cfgs.Add(Model.CreateConfig("AFE_PMSM_LP"));
-            Model.Picks(cfgs[^1], new List<JObject>
+            Model.Picks(cfgs[cfgs.Count - 1], new List<JObject>
             {
                 Model.MakePick("Rectifier", "Thyristor rectifier"),
                 Model.MakePick("Motor", "PMSM low power")

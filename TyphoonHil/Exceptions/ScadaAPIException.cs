@@ -1,22 +1,24 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 
-namespace TyphoonHil.Exceptions;
-
-public class ScadaAPIException : Exception
+namespace TyphoonHil.Exceptions
 {
-    public ScadaAPIException()
+    public class ScadaAPIException : Exception
     {
-    }
+        public ScadaAPIException()
+        {
+        }
 
-    public ScadaAPIException(string? message) : base(message)
-    {
-    }
+        public ScadaAPIException(string message) : base(message)
+        {
+        }
 
-    public ScadaAPIException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
+        public ScadaAPIException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
 
-    protected ScadaAPIException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
+        protected ScadaAPIException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
     }
 }

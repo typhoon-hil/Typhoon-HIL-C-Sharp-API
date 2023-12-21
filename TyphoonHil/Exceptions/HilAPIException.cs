@@ -1,12 +1,15 @@
-﻿namespace TyphoonHil.Exceptions;
+﻿using System;
 
-public class HilAPIException : Exception
+namespace TyphoonHil.Exceptions
 {
-    public HilAPIException()
+    public class HilAPIException : Exception
     {
-    }
+        public HilAPIException()
+        {
+        }
 
-    public HilAPIException(string message) : base(message)
-    {
+        public HilAPIException(string message) : base(message)
+        {
+        }
     }
 }

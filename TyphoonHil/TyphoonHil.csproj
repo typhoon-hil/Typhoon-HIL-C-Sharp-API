@@ -1,23 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageId>Typhoon-HIL.Api</PackageId>
     <Title>.NET Implementation of THCC API</Title>
-    <Authors>Balsa Bulatovic</Authors>
     <Company>Typhoon-HIL</Company>
     <Product>THCC API</Product>
-    <Description>.NET Implementation of THCC API</Description>
+    <Description>.NET Implementation of THCC API client</Description>
     <PackageIcon>Typhoon_HIL_logo.jpg</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/BulatovicBalsa/Typhoon-HIL-C-Sharp-API</RepositoryUrl>
+    <RepositoryUrl>https://github.com/typhoon-hil/Typhoon-HIL-C-Sharp-API</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>typhoon hil;typhoon-hil;thcc</PackageTags>
+    <PackageTags>typhoon hil;typhoon-hil;typhoon-hil-api;thcc</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,10 +35,6 @@
   <ItemGroup>
     <PackageReference Include="NetMQ" Version="4.0.1.13" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="bin\Debug\net7.0\" />
   </ItemGroup>
 
 </Project>

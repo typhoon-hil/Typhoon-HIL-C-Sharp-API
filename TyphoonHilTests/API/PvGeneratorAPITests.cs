@@ -1,47 +1,31 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
+using System.IO;
 using TyphoonHil.API;
+using TyphoonHilTests.Utils;
 
 namespace TyphoonHilTests.API
 {
     [TestClass]
     public class PvGeneratorAPITests
     {
-        public PvGeneratorAPI Model { get; set; } = new();
+        public PvGeneratorAPITests() { }
+
+        public PvGeneratorAPI Model { get; set; } = new PvGeneratorAPI();
         public string StartupPath { get; set; } = "";
 
         public string TestDataPath { get; set; } = "";
         public string ProtectedDataPath { get; set; } = "";
 
-        void ClearDirectory(string directoryPath)
-        {
-            if (Directory.Exists(directoryPath))
-            {
-                foreach (var file in Directory.GetFiles(directoryPath))
-                {
-                    File.Delete(file);
-                }
-
-                foreach (var subdirectory in Directory.GetDirectories(directoryPath))
-                {
-                    ClearDirectory(subdirectory);
-                }
-            }
-            else
-            {
-                throw new DirectoryNotFoundException($"Directory '{directoryPath}' not found.");
-            }
-        }
-
         [TestInitialize]
         public void Init()
         {
             Model = new PvGeneratorAPI();
-            StartupPath = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.FullName;
+            StartupPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             TestDataPath = Path.Combine(StartupPath, "TestData");
             ProtectedDataPath = Path.Combine(StartupPath, "ProtectedData");
 
-            ClearDirectory(TestDataPath);
+            if (Directory.Exists(TestDataPath)) TestUtils.ClearDirectory(TestDataPath);
         }
 
         [TestMethod]

@@ -1,33 +1,40 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.IO;
 using TyphoonHil.API;
+using TyphoonHilTests.Utils;
 
 namespace TyphoonHilTests.API
 {
     [TestClass()]
     public class HilAPITests
     {
-        public required HilAPI Model { get; set; }
-        public required string StartupPath { get; set; }
-        public required string TestDataPath { get; set; }
-        public required string ProtectedDataPath { get; set; }
+        public HilAPITests() { }
+
+        public SchematicAPI SchematicApiModel { get; set; }
+        public HilAPI Model { get; set; }
+        public string StartupPath { get; set; }
+        public string TestDataPath { get; set; }
+        public string ProtectedDataPath { get; set; }
 
         [TestInitialize]
         public void Init()
         {
             Model = new HilAPI();
-            StartupPath = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.FullName;
+            SchematicApiModel = new SchematicAPI();
+            StartupPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             TestDataPath = Path.Combine(StartupPath, "TestData");
             ProtectedDataPath = Path.Combine(StartupPath, "ProtectedData");
 
-            SchematicAPITests.ClearDirectory(TestDataPath);
+            if (Directory.Exists(TestDataPath)) TestUtils.ClearDirectory(TestDataPath);
         }
 
         [TestMethod()]
         public void SetScadaInputValueTest()
         {
             var p = new JObject() { {"result", null }};
-            double? p2 = (double?)p["result"]!;
+            double? p2 = (double?)p["result"];
         }
 
         [TestMethod()]
@@ -53,8 +60,8 @@ namespace TyphoonHilTests.API
             Model.SetMachineSinEncoderOffset("machine 1", 1.57);
 
             var harmonics = new List<Harmonic>() { new Harmonic(2, 23, 2) };
-            Model.PrepareSourceSineWaveform(new List<string> { "Vb" }, rms: new() { 220 }, frequency: new() { 50 },
-                phase: new() { 120 }, harmonics: harmonics);
+            Model.PrepareSourceSineWaveform(new List<string> { "Vb" }, rms: new List<double>() { 220 }, 
+                frequency: new List<double>() { 50 }, phase: new List<double>() { 120 }, harmonics: harmonics);
 
             Model.PrepareSourceConstantValue("Vdc", 200);
 

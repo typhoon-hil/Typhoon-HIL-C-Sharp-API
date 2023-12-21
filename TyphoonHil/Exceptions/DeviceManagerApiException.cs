@@ -1,12 +1,15 @@
-﻿namespace TyphoonHil.Exceptions;
+﻿using System;
 
-public class DeviceManagerApiException : Exception
+namespace TyphoonHil.Exceptions
 {
-    public DeviceManagerApiException()
+    public class DeviceManagerApiException : Exception
     {
-    }
+        public DeviceManagerApiException()
+        {
+        }
 
-    public DeviceManagerApiException(string message) : base(message)
-    {
+        public DeviceManagerApiException(string message) : base(message)
+        {
+        }
     }
 }

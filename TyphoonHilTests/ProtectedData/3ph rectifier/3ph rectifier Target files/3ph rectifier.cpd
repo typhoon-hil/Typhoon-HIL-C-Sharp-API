@@ -1,18 +1,18 @@
 
 <model_description>
-    <sw_version>2023.3 SP1</sw_version>
+    <sw_version>2023.3</sw_version>
     <hw_properties>
         <revision>3</revision>
-        <product_id>HIL402</product_id>
+        <product_id>VHIL+</product_id>
         <configuration_id>1</configuration_id>
         <device_ao_limit_enable>False</device_ao_limit_enable>
         <device_id>0</device_id>
-        <spc_out_mem_size>256</spc_out_mem_size>
+        <spc_out_mem_size>512</spc_out_mem_size>
         <fw_support_limit>132580891</fw_support_limit>
         <vhil_adio_loopback>False</vhil_adio_loopback>
     </hw_properties>
     <sim_setup>
-        <sim_time_step>5e-07</sim_time_step>
+        <sim_time_step>1e-07</sim_time_step>
     </sim_setup>
     <pesb>
         <cell>
@@ -55,32 +55,11 @@
             <visible>True</visible>
         </cell>
         <cell>
-            <name>3ph_rectifier 1.Diode Leg3.i2</name>
-            <address>145</address>
-            <type>current</type>
-            <initial_condition>None</initial_condition>
-            <visible>False</visible>
-        </cell>
-        <cell>
-            <name>Ia1</name>
-            <address>6</address>
-            <type>current</type>
-            <initial_condition>None</initial_condition>
-            <visible>True</visible>
-        </cell>
-        <cell>
-            <name>3ph_rectifier 1.Diode Leg2.v2</name>
-            <address>139</address>
+            <name>3ph_rectifier 1.Diode Leg3.v2</name>
+            <address>403</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>False</visible>
-        </cell>
-        <cell>
-            <name>Ia3</name>
-            <address>8</address>
-            <type>current</type>
-            <initial_condition>None</initial_condition>
-            <visible>True</visible>
         </cell>
         <cell>
             <name>Va1.full_bandwidth</name>
@@ -97,6 +76,13 @@
             <visible>True</visible>
         </cell>
         <cell>
+            <name>3ph_rectifier 1.Diode Leg3.v1</name>
+            <address>402</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>False</visible>
+        </cell>
+        <cell>
             <name>Ia2</name>
             <address>7</address>
             <type>current</type>
@@ -104,72 +90,51 @@
             <visible>True</visible>
         </cell>
         <cell>
-            <name>3ph_rectifier 1.Diode Leg1.v2</name>
-            <address>131</address>
-            <type>voltage</type>
+            <name>Ia1</name>
+            <address>6</address>
+            <type>current</type>
             <initial_condition>None</initial_condition>
-            <visible>False</visible>
+            <visible>True</visible>
         </cell>
         <cell>
-            <name>3ph_rectifier 1.Diode Leg3.v2</name>
-            <address>147</address>
+            <name>3ph_rectifier 1.Diode Leg1.v2</name>
+            <address>387</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>False</visible>
         </cell>
         <cell>
             <name>3ph_rectifier 1.Diode Leg2.i2</name>
-            <address>137</address>
+            <address>393</address>
             <type>current</type>
             <initial_condition>None</initial_condition>
             <visible>False</visible>
         </cell>
         <cell>
-            <name>Va1</name>
-            <address>5</address>
-            <type>voltage</type>
-            <initial_condition>None</initial_condition>
-            <visible>True</visible>
-        </cell>
-        <cell>
-            <name>Va1</name>
-            <address>5</address>
-            <type>voltage</type>
-            <initial_condition>None</initial_condition>
-            <visible>True</visible>
-        </cell>
-        <cell>
-            <name>3ph_rectifier 1.Diode Leg2.v1</name>
-            <address>138</address>
-            <type>voltage</type>
-            <initial_condition>None</initial_condition>
-            <visible>False</visible>
-        </cell>
-        <cell>
-            <name>3ph_rectifier 1.Diode Leg1.i2</name>
-            <address>129</address>
+            <name>3ph_rectifier 1.Diode Leg3.i2</name>
+            <address>401</address>
             <type>current</type>
-            <initial_condition>None</initial_condition>
-            <visible>False</visible>
-        </cell>
-        <cell>
-            <name>3ph_rectifier 1.Diode Leg3.v1</name>
-            <address>146</address>
-            <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>False</visible>
         </cell>
         <cell>
             <name>3ph_rectifier 1.Diode Leg2.i1</name>
-            <address>136</address>
+            <address>392</address>
             <type>current</type>
             <initial_condition>None</initial_condition>
             <visible>False</visible>
         </cell>
         <cell>
-            <name>3ph_rectifier 1.Diode Leg1.v1</name>
-            <address>130</address>
+            <name>3ph_rectifier 1.Diode Leg2.v2</name>
+            <address>395</address>
             <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>False</visible>
+        </cell>
+        <cell>
+            <name>3ph_rectifier 1.Diode Leg1.i1</name>
+            <address>384</address>
+            <type>current</type>
             <initial_condition>None</initial_condition>
             <visible>False</visible>
         </cell>
@@ -181,155 +146,302 @@
             <visible>True</visible>
         </cell>
         <cell>
-            <name>3ph_rectifier 1.Diode Leg3.i1</name>
-            <address>144</address>
+            <name>Va1</name>
+            <address>5</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>Va1</name>
+            <address>5</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>3ph_rectifier 1.Diode Leg1.v1</name>
+            <address>386</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>False</visible>
+        </cell>
+        <cell>
+            <name>Ia3</name>
+            <address>8</address>
+            <type>current</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>3ph_rectifier 1.Diode Leg1.i2</name>
+            <address>385</address>
             <type>current</type>
             <initial_condition>None</initial_condition>
             <visible>False</visible>
         </cell>
         <cell>
-            <name>3ph_rectifier 1.Diode Leg1.i1</name>
-            <address>128</address>
+            <name>3ph_rectifier 1.Diode Leg2.v1</name>
+            <address>394</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>False</visible>
+        </cell>
+        <cell>
+            <name>3ph_rectifier 1.Diode Leg3.i1</name>
+            <address>400</address>
             <type>current</type>
             <initial_condition>None</initial_condition>
             <visible>False</visible>
         </cell>
         <cell>
             <name>Vgrid_a</name>
-            <address>16640</address>
+            <address>33280</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>Vgrid_b</name>
-            <address>16641</address>
+            <address>33281</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>Vgrid_c</name>
-            <address>16642</address>
+            <address>33282</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>const_0V</name>
-            <address>17152</address>
+            <address>34304</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 1</name>
-            <address>17408</address>
+            <address>34816</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 2</name>
-            <address>17409</address>
+            <address>34817</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 3</name>
-            <address>17410</address>
+            <address>34818</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 4</name>
-            <address>17411</address>
+            <address>34819</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 5</name>
-            <address>17412</address>
+            <address>34820</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 6</name>
-            <address>17413</address>
+            <address>34821</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 7</name>
-            <address>17414</address>
+            <address>34822</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 8</name>
-            <address>17415</address>
+            <address>34823</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 9</name>
-            <address>17416</address>
+            <address>34824</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 10</name>
-            <address>17417</address>
+            <address>34825</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 11</name>
-            <address>17418</address>
+            <address>34826</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 12</name>
-            <address>17419</address>
+            <address>34827</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 13</name>
-            <address>17420</address>
+            <address>34828</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 14</name>
-            <address>17421</address>
+            <address>34829</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 15</name>
-            <address>17422</address>
+            <address>34830</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
         </cell>
         <cell>
             <name>HIL0 analog input 16</name>
-            <address>17423</address>
+            <address>34831</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 17</name>
+            <address>34832</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 18</name>
+            <address>34833</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 19</name>
+            <address>34834</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 20</name>
+            <address>34835</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 21</name>
+            <address>34836</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 22</name>
+            <address>34837</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 23</name>
+            <address>34838</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 24</name>
+            <address>34839</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 25</name>
+            <address>34840</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 26</name>
+            <address>34841</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 27</name>
+            <address>34842</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 28</name>
+            <address>34843</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 29</name>
+            <address>34844</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 30</name>
+            <address>34845</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 31</name>
+            <address>34846</address>
+            <type>voltage</type>
+            <initial_condition>None</initial_condition>
+            <visible>True</visible>
+        </cell>
+        <cell>
+            <name>HIL0 analog input 32</name>
+            <address>34847</address>
             <type>voltage</type>
             <initial_condition>None</initial_condition>
             <visible>True</visible>
@@ -480,6 +592,134 @@
             <name>HIL0 digital input 32</name>
             <address>543</address>
         </cell>
+        <cell>
+            <name>HIL0 digital input 33</name>
+            <address>544</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 34</name>
+            <address>545</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 35</name>
+            <address>546</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 36</name>
+            <address>547</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 37</name>
+            <address>548</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 38</name>
+            <address>549</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 39</name>
+            <address>550</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 40</name>
+            <address>551</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 41</name>
+            <address>552</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 42</name>
+            <address>553</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 43</name>
+            <address>554</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 44</name>
+            <address>555</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 45</name>
+            <address>556</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 46</name>
+            <address>557</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 47</name>
+            <address>558</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 48</name>
+            <address>559</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 49</name>
+            <address>560</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 50</name>
+            <address>561</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 51</name>
+            <address>562</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 52</name>
+            <address>563</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 53</name>
+            <address>564</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 54</name>
+            <address>565</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 55</name>
+            <address>566</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 56</name>
+            <address>567</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 57</name>
+            <address>568</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 58</name>
+            <address>569</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 59</name>
+            <address>570</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 60</name>
+            <address>571</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 61</name>
+            <address>572</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 62</name>
+            <address>573</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 63</name>
+            <address>574</address>
+        </cell>
+        <cell>
+            <name>HIL0 digital input 64</name>
+            <address>575</address>
+        </cell>
     </digital_variables>
     <sources>
         <cell>
@@ -525,7 +765,7 @@
 
     <model_properties>
         <execution_rates>[None]</execution_rates>
-        <sys_real_type_precision>float</sys_real_type_precision>
+        <sys_real_type_precision>double</sys_real_type_precision>
         <user_real_type_precision>double</user_real_type_precision>
         <sig_stim>off</sig_stim>
     </model_properties>

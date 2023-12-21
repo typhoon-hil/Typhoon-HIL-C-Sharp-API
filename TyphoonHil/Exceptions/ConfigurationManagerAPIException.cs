@@ -1,12 +1,15 @@
-﻿namespace TyphoonHil.Exceptions;
+﻿using System;
 
-internal class ConfigurationManagerAPIException : Exception
+namespace TyphoonHil.Exceptions
 {
-    public ConfigurationManagerAPIException()
+    internal class ConfigurationManagerAPIException : Exception
     {
-    }
+        public ConfigurationManagerAPIException()
+        {
+        }
 
-    public ConfigurationManagerAPIException(string message) : base(message)
-    {
+        public ConfigurationManagerAPIException(string message) : base(message)
+        {
+        }
     }
 }
