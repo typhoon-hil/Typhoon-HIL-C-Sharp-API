@@ -385,16 +385,6 @@ namespace TyphoonHilTests.API
             // Arrange
             var testableApi = new HilAPITestable();
 
-            // Mock response for the "get_pe_switching_blocks" method
-            var mockResponse = new JObject
-            {
-                ["result"] = new JArray(
-                    new JArray("block1_device0", "block2_device0"),
-                    new JArray("block1_device1"),
-                    new JArray("block1_device2", "block2_device2", "block3_device2")
-                )
-            };
-
             // Act
             var result = testableApi.GetPeSwitchingBlocks();
 
