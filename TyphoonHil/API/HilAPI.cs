@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TyphoonHil.Communication;
@@ -10,9 +11,13 @@ namespace TyphoonHil.API
     {
         internal PvAmbRes(JArray res)
         {
+            // The first element should be a boolean status.
             Status = (bool)res[0];
-            MaxPowerCurrent = (double)res[1];
-            MaxPowerVoltage = (double)res[2];
+
+            // The second element should be an array/tuple containing two double values.
+            var powerValues = (JArray)res[1];
+            MaxPowerCurrent = (double)powerValues[0];
+            MaxPowerVoltage = (double)powerValues[1];
         }
 
         public PvAmbRes()
@@ -99,7 +104,9 @@ namespace TyphoonHil.API
         {
             {
                 var res = Request(method, parameters);
+                Console.WriteLine("HandleRequest - The result contain error: " + res.ContainsKey("error").ToString());
                 if (!res.ContainsKey("error")) return res;
+                Console.WriteLine("HandleRequest - The error message is: " + res["error"].ToString());
                 var msg = res["error"] == null ? null : (string)res["error"]["message"];
                 throw new HilAPIException(msg);
             }
@@ -624,7 +631,7 @@ namespace TyphoonHil.API
                 { "name", new JArray(names) },
                 { "rms", rms == null ? null : new JArray(rms) },
                 { "frequency", frequency == null ? null : new JArray(frequency) },
-                { "phase", phase == null ? null : new JArray() },
+                { "phase", phase == null ? null : new JArray(phase) },
                 { "harmonics", harmonics == null ? null : new JArray(harmonics.Select(item => item.JArray)) },
                 { "harmonics_pu", harmonicsPu == null ? null : new JArray(harmonicsPu.Select(item => item.JArray)) },
                 { "executeAt", executeAt },
@@ -1289,11 +1296,22 @@ namespace TyphoonHil.API
             return ((JArray)HandleRequest("get_sources", parameters)["result"]).Select(item => (string)item).ToList();
         }
 
-        public List<string> GetPvs()
+        public List<List<string>> GetPvs()
         {
             var parameters = new JObject();
 
-            return ((JArray)HandleRequest("get_pvs", parameters)["result"]).Select(item => (string)item).ToList();
+            // Handle the nested structure returned by get_pvs
+            var resultArray = (JArray)HandleRequest("get_pvs", parameters)["result"];
+
+            // Convert the JArray into a List<List<string>>
+            var pvs = new List<List<string>>();
+            foreach (var devicePvs in resultArray)
+            {
+                var pvList = ((JArray)devicePvs).Select(pvName => (string)pvName).ToList();
+                pvs.Add(pvList);
+            }
+
+            return pvs;
         }
 
         public List<string> GetAnalogSignals()
@@ -1342,12 +1360,17 @@ namespace TyphoonHil.API
             return ((JArray)HandleRequest("get_machines", parameters)["result"]).Select(item => (string)item).ToList();
         }
 
-        public List<string> GetPeSwitchingBlocks()
+        public List<List<string>> GetPeSwitchingBlocks()
         {
             var parameters = new JObject();
 
-            return ((JArray)HandleRequest("get_pe_switching_blocks", parameters)["result"]).Select(item => (string)item)
-                .ToList();
+            // Get the result as a JArray
+            var resultArray = (JArray)HandleRequest("get_pe_switching_blocks", parameters)["result"];
+
+            // Convert each inner JArray to a List<string> and then collect all those lists into a List<List<string>>
+            var nestedList = resultArray.Select(innerArray => innerArray.Select(item => (string)item).ToList()).ToList();
+
+            return nestedList;
         }
 
         public List<string> GetScadaInputs()
@@ -1461,11 +1484,12 @@ namespace TyphoonHil.API
             return (JObject)HandleRequest("get_scada_input_settings", parameters)["result"];
         }
 
-        public List<int?> GetHilSerialNumber()
+        public List<string> GetHilSerialNumber()
         {
             var parameters = new JObject();
 
-            return ((JArray)HandleRequest("get_hil_serial_number", parameters)["result"]).Select(item => (int?)item)
+            // Assuming the result contains strings and returning them as List<string>
+            return ((JArray)HandleRequest("get_hil_serial_number", parameters)["result"]).Select(item => (string)item)
                 .ToList();
         }
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>TyphoonHIL</id>
+    <version>1.1.2</version>
+    <title>.NET Implementation of Typhoon HIL Control Centre API</title>
+    <authors>Typhoon HIL</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <icon>..Resources\Typhoon_HIL_logo.jpg</icon>
+    <description>.NET implementation of a Typhoon HIL client API.</description>
+    <releaseNotes>Initial release of the TyphoonHIL API for .NET. This package provides the .NET implementation for interacting with Typhoon client API.</releaseNotes>
+    <copyright>Copyright © 2023 TyphoonHIL</copyright>
+    <tags>Typhoon HIL API THCC</tags>
+	<readme>..README.md</readme>
+	<repository type="git" url="https://github.com/typhoon-hil/Typhoon-HIL-C-Sharp-API" />
+  </metadata>
+  <files>
+    <file src="..README.md" target="" />
+	<file src="..Resources\Typhoon_HIL_logo.jpg" target="Resources" />
+	<file src="..Resources\scratch_model.png" target="Resources" />
+  </files>
+</package>
