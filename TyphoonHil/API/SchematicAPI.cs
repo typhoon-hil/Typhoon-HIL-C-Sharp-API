@@ -272,6 +272,24 @@ namespace TyphoonHil.API
             return Request("load", new JObject { { "filename", filename } });
         }
 
+        /*        public bool Load(string filename)
+                {
+                    Console.WriteLine("Load() invoked!");
+                    var response = HandleRequest("load", new JObject { { "filename", filename } });
+                    Console.WriteLine("Response (Load) is: " + response.ToString());
+                    // Safely check for the 'result' key and its value
+                    if (response != null && response.TryGetValue("result", out var resultToken) && resultToken.Type != JTokenType.Null)
+                    {
+                        Console.WriteLine("Load - condition is true");
+                        return resultToken.ToObject<bool>();
+                    }
+
+                    // If result is null or the key doesn't exist, return false
+                    Console.WriteLine("Load - condition is false");
+                    return false;
+                }*/
+
+
         public void Save()
         {
             HandleRequest("save", new JObject());
@@ -401,16 +419,29 @@ namespace TyphoonHil.API
             return (JObject)HandleRequest("create_connection", parameters)["result"];
         }
 
-        public JObject SetPropertyValue(JObject propertyHandle, object value)
+        /*        public JObject SetPropertyValue(JObject propertyHandle, object value)
+                {
+                    var parameters = new JObject
+                    {
+                        { "prop_handle", propertyHandle },
+                        { "value", JToken.FromObject(value) }
+                    };
+
+                    return Request("set_property_value", parameters);
+                }
+        */
+
+        public void SetPropertyValue(JObject propHandle, object propValue)
         {
             var parameters = new JObject
             {
-                { "prop_handle", propertyHandle },
-                { "value", JToken.FromObject(value) }
+                { "prop_handle", propHandle },
+                { "value", JToken.FromObject(propValue) }
             };
 
-            return Request("set_property_value", parameters);
+            HandleRequest("set_property_value", parameters);
         }
+
 
         public JObject Prop(JObject itemHandle, string propertyName)
         {
@@ -1111,14 +1142,24 @@ namespace TyphoonHil.API
             return (JObject)HandleRequest("get_property_type_attributes", parameters)["result"];
         }
 
-        public string GetPropertyValue(JObject propHandle)
+        /*        public string GetPropertyValue(JObject propHandle)
+                {
+                    var parameters = new JObject
+                    {
+                        { "prop_handle", propHandle }
+                    };
+
+                    return (string)HandleRequest("get_property_value", parameters)["result"];
+                }*/
+
+        public JToken GetPropertyValue(JObject propHandle)
         {
             var parameters = new JObject
             {
                 { "prop_handle", propHandle }
             };
 
-            return (string)HandleRequest("get_property_value", parameters)["result"];
+            return HandleRequest("get_property_value", parameters)["result"];
         }
 
         public string GetPropertyValueType(JObject propHandle)
@@ -1384,17 +1425,42 @@ namespace TyphoonHil.API
             HandleRequest("remove_property", parameters);
         }
 
-        public bool SetComponentProperty(string component, string property, string value)
+        /*        public bool SetComponentProperty(string component, string property, string value)
+                {
+                    var parameters = new JObject
+                    {
+                        { "value", value },
+                        { "component", component },
+                        { "property", property }
+                    };
+
+                    return (bool)HandleRequest("set_component_property", parameters)["result"];
+                }*/
+
+        public bool SetComponentProperty(string component, string property, object value)
         {
             var parameters = new JObject
             {
-                { "value", value },
                 { "component", component },
-                { "property", property }
+                { "property", property },
+                { "value", JToken.FromObject(value) }
             };
 
-            return (bool)HandleRequest("set_component_property", parameters)["result"];
+            var response = HandleRequest("set_component_property", parameters);
+
+            // Log the response for debugging
+            Console.WriteLine($"SetComponentProperty Response: {response}");
+
+            // Check for null result and handle appropriately
+            if (response["result"] == null)
+            {
+                Console.WriteLine("Error: Result is null. Property could not be set.");
+                return false;
+            }
+
+            return response["result"].ToObject<bool>();
         }
+
 
         public void SetDescription(JObject itemHandle, string description)
         {
