@@ -689,24 +689,6 @@ namespace TyphoonHil.API
             return (bool)HandleRequest("set_pv_input_file", parameters)["result"];
         }
 
-        /*        public PvAmbRes SetPvAmbParams(string name, double? illumination = null, double? temperature = null,
-                    double? isc = null, double? voc = null, double? executeAt = null, double? rampTime = 0, string rampType = "lin")
-                {
-                    var parameters = new JObject
-                    {
-                        { "name", name },
-                        { "illumination", illumination },
-                        { "temperature", temperature },
-                        { "isc", isc },
-                        { "voc", voc },
-                        { "executeAt", executeAt },
-                        { "ramp_time", rampTime },
-                        { "ramp_type", rampType }
-                    };
-
-                    return new PvAmbRes((JArray)HandleRequest("set_pv_amb_params", parameters)["result"]);
-                }*/
-
         public PvAmbRes SetPvAmbParams(string name, double? illumination = null, double? temperature = null,
             double? isc = null, double? voc = null, double? executeAt = null, double? rampTime = 0, string rampType = "lin")
         {
