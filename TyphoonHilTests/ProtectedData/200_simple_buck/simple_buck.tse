@@ -1,0 +1,442 @@
+version = 4.2
+
+//
+// Saved by sw version: 2024.3
+//
+
+model "simple_buck" {
+    configuration {
+        hil_device = "HIL404"
+        hil_configuration_id = 1
+        simulation_method = exact
+        simulation_time_step = auto
+        simulation_discret_scaling = 1.0
+        dsp_timer_periods = 100e-6, 50e-3
+        ss_calc_method = "systematic elimination"
+        enb_pole_shift = True
+        enb_gds_oversampling = True
+        show_modes = False
+        device_ao_limit_enable = False
+        reset_analog_outputs_on_sim_stop = True
+        reset_analog_outputs_on_sim_stop_mode = Offset values
+        reset_digital_outputs_on_sim_stop = True
+        vhil_adio_loopback = False
+        cpl_stb = False
+        enb_dep_sw_detect = False
+        code_section = "internal memory"
+        data_section = "internal memory"
+        sys_sp_rate_1 = 0.0001
+        sys_sp_rate_2 = 0.05
+        sys_real_type_precision = "default"
+        user_real_type_precision = "default"
+        sys_cpu_optimization = "high"
+        user_cpu_optimization = "high"
+        user_cpu_part_option = "default"
+        matrix_based_reduction = True
+        cpl_dynamics_analysis = False
+        export_ss_to_pickle = False
+        ground_scope_core = False
+        dss_num_tol = 1e-15
+        cce_platform = "generic"
+        cce_use_relative_names = False
+        cce_type_mapping_real = "double"
+        cce_type_mapping_uint = "unsigned int"
+        cce_type_mapping_int = "int"
+        cce_platform = "generic"
+        cce_use_relative_names = False
+        cce_type_mapping_real = "double"
+        cce_type_mapping_uint = "unsigned int"
+        cce_type_mapping_int = "int"
+        cce_directory = ""
+        cce_custom_type_int = ""
+        cce_custom_type_uint = ""
+        cce_custom_type_real = ""
+        tunable_params = "component defined"
+        sp_compiler_type = "C compiler"
+        sig_stim = "off"
+        export_resource_list = ""
+        export_dependency_list = ""
+        excluded_resource_list = ""
+        export_out_file = ""
+        export_lock_top_level = True
+        export_encrypt_library = True
+        export_encrypt_resources = True
+        dae_solver = "BDF"
+        max_sim_step = 1e-4
+        simulation_time = 1.0
+        abs_tol = 1e-3
+        rel_tol = 1e-3
+        init_sim_step = 1e-6
+        r_on_sw = 1e-3
+        v_on_diode = 0.2
+        data_sampling_rate = 0
+        feedthrough_validation_error_level = warning
+    }
+
+    component Subsystem Root {
+        component "core/Resistor" R0 {
+            resistance = "0.000001"
+        }
+        [
+            position = 2096, 2016
+            rotation = right
+        ]
+
+        component "core/Voltage Source" Vin {
+            R2 = "0.1"
+            param_set = ""
+        }
+        [
+            position = 1392, 2000
+            rotation = right
+        ]
+
+        component "core/Voltage Measurement" Vo {
+        }
+        [
+            position = 1920, 2016
+            rotation = right
+            size = 64, 32
+        ]
+
+        component "core/Capacitor" Cdc {
+            capacitance = "0.000001"
+            initial_voltage = "0.0"
+        }
+        [
+            position = 2000, 2016
+            rotation = right
+        ]
+
+        component "core/Current Measurement" Io {
+        }
+        [
+            position = 2048, 1920
+            size = 64, 32
+        ]
+
+        component "core/Ground" "gnd 1" {
+        }
+        [
+            position = 1392, 2176
+        ]
+
+        component "core/Inductor" Lbuck {
+            inductance = "0.00100"
+        }
+        [
+            position = 1840, 1920
+        ]
+
+        component "core/Current Measurement" ILbuck {
+        }
+        [
+            position = 1760, 1920
+            size = 64, 32
+        ]
+
+        component "core/Voltage Measurement" VLbuck {
+        }
+        [
+            position = 1824, 1856
+            size = 64, 32
+        ]
+
+        component "core/Digital Probe" Channel_5 {
+        }
+        [
+            position = 1392, 1864
+        ]
+
+        component "core/Digital Input" "Digital Input5" {
+            addr = "5"
+        }
+        [
+            position = 1312, 1864
+        ]
+
+        component "core/Buck" buck_1 {
+            S1 = "5"
+            fvd_def_method = "LUT"
+        }
+        [
+            position = 1600, 2016
+            size = 127, 256
+        ]
+
+        junction Junction1 pe
+        [
+            position = 2000, 2112
+        ]
+
+        junction Junction2 pe
+        [
+            position = 2000, 1920
+        ]
+
+        junction Junction3 pe
+        [
+            position = 1920, 1920
+        ]
+
+        junction Junction4 pe
+        [
+            position = 1888, 1920
+        ]
+
+        junction Junction5 pe
+        [
+            position = 1696, 1920
+        ]
+
+        junction Junction6 pe
+        [
+            position = 1920, 2112
+        ]
+
+        junction Junction7 pe
+        [
+            position = 1392, 2112
+        ]
+
+        connect Cdc.n_node Junction1 as Connection1
+        [
+            breakpoints = 2000, 2080; 2000, 2080
+        ]
+        connect Cdc.p_node Junction2 as Connection3
+        [
+            breakpoints = 2000, 1952; 2000, 1952
+        ]
+        connect "Digital Input5.out" Channel_5.in as Connection22
+        connect ILbuck.n_node Lbuck.p_node as Connection6
+        [
+            breakpoints = 1808, 1920; 1808, 1920
+        ]
+        connect Io.p_node Junction2 as Connection4
+        [
+            breakpoints = 2016, 1920; 2016, 1920
+        ]
+        connect Io.n_node R0.p_node as Connection5
+        [
+            breakpoints = 2096, 1920
+        ]
+        connect Junction3 Junction2 as Connection8
+        [
+            breakpoints = 1920, 1920; 1968, 1920; 1968, 1920; 2000, 1920
+        ]
+        connect Junction4 Junction3 as Connection10
+        [
+            breakpoints = 1904, 1920; 1904, 1920
+        ]
+        connect Junction5 ILbuck.p_node as Connection13
+        [
+            breakpoints = 1696, 1920
+        ]
+        connect Junction6 Junction1 as Connection16
+        [
+            breakpoints = 1920, 2112; 1968, 2112; 1968, 2112
+        ]
+        connect Junction7 "gnd 1.node" as Connection19
+        [
+            breakpoints = 1392, 2144; 1392, 2144
+        ]
+        connect Lbuck.n_node Junction4 as Connection9
+        [
+            breakpoints = 1880, 1920; 1880, 1920
+        ]
+        connect R0.n_node Junction1 as Connection2
+        [
+            breakpoints = 2096, 2080; 2096, 2080; 2096, 2112; 2048, 2112; 2048, 2112
+        ]
+        connect VLbuck.n_node Junction4 as Connection11
+        [
+            breakpoints = 1888, 1856
+        ]
+        connect VLbuck.p_node Junction5 as Connection12
+        [
+            breakpoints = 1696, 1856
+        ]
+        connect Vin.n_node Junction7 as Connection18
+        [
+            breakpoints = 1392, 2080; 1392, 2080
+        ]
+        connect Vo.p_node Junction3 as Connection7
+        [
+            breakpoints = 1920, 1952; 1920, 1952
+        ]
+        connect Vo.n_node Junction6 as Connection15
+        [
+            breakpoints = 1920, 2080; 1920, 2080
+        ]
+        connect buck_1.a_out Junction5 as Connection14
+        [
+            breakpoints = 1680, 1920; 1680, 1920
+        ]
+        connect buck_1.b_out Junction6 as Connection17
+        [
+            breakpoints = 1792, 2112; 1792, 2112
+        ]
+        connect buck_1.b_in Junction7 as Connection20
+        [
+            breakpoints = 1472, 2112; 1472, 2112
+        ]
+        connect buck_1.a_in Vin.p_node as Connection21
+        [
+            breakpoints = 1392, 1920
+        ]
+    }
+
+    default {
+        "core/Capacitor" {
+            signal_access = "inherit"
+            capacitance = "1e-6"
+            initial_voltage = "0"
+            pole_shift_ignore = "False"
+            visible = "True"
+        }
+
+        "core/Digital Input" {
+            addr = "1"
+            invert = "false"
+            signal_type = "uint"
+            execution_rate = "100e-6"
+        }
+
+        "core/Digital Probe" {
+            signal_access = "inherit"
+            override_signal_name = "False"
+            signal_name = ""
+            streaming_en = "False"
+            addr = "0"
+            streaming_er_idx = "0"
+            execution_rate = "inherit"
+        }
+
+        "core/Inductor" {
+            signal_access = "inherit"
+            inductance = "1e-3"
+            initial_current = "0.0"
+            pole_shift_ignore = "False"
+            visible = "True"
+        }
+
+        "core/Resistor" {
+            resistance = "1"
+            param_set = ""
+        }
+
+        "core/Voltage Source" {
+            sig_input = "False"
+            type = "signal generator"
+            param_set = "1phase"
+            parent_label = ""
+            addr = "0"
+            spc_nb = "0"
+            execution_rate = "100e-6"
+            cpd_visible = "True"
+            enable_snb = "False"
+            snb_type = "R2"
+            R2 = "0.0"
+            L1 = "0.1"
+            override_signal_name = "False"
+            signal_name = ""
+            init_source_nature = "Constant"
+            init_const_value = "0.0"
+            init_rms_value = "0.0"
+            init_frequency = "50.0"
+            init_phase = "0.0"
+        }
+
+        "core/Buck" {
+            signal_access = "inherit"
+            ctrl_src = "Digital inputs"
+            op_mode = "Fixed carrier frequency"
+            carrier_freq = "10000.0"
+            carr_ph_offset = "0.0"
+            d_time = "5e-6"
+            ref_sig_min_max = "[-1.0, 1.0]"
+            load_mode = "on min"
+            execution_rate = "inherit"
+            S1 = "1"
+            S1_logic = "active high"
+            pwm_enabling = "False"
+            pwm_enable_di = "13"
+            pwm_enable_inv = "active high"
+            losses_estimation = "False"
+            fvd_def_method = "Voltage and Resistance"
+            Import_igbt_xml = "not selected"
+            Import_diode_xml = "not selected"
+            Vce = "1.3"
+            Rce = "0"
+            Vd = "1.2"
+            Rd = "0"
+            i_sw = "[0.0, 6.0, 12.0, 18.0, 24.0]"
+            v_sw = "[0.0, 600.0]"
+            temp_sw = "[25.0, 50.0, 75.0, 100.0, 125.0]"
+            vce_table_out = "[1.3, 1.3, 1.3, 1.3, 1.3]"
+            vd_table_out = "[1.2, 1.2, 1.2, 1.2, 1.2]"
+            et_on_table_out = "[[0.0, 0.0275e-3, 0.15e-3, 0.275e-3, 0.3e-3], [0.35*3.8e-3, 0.4*3.8e-3, 0.8*3.8e-3, 0.68*3.8e-3, 0.9*3.8e-3], [0.65*3.8e-3, 0.9*3.8e-3, 1.2*3.8e-3, 1.5*3.8e-3, 1.7*3.8e-3], [0.9*3.8e-3, 1.3*3.8e-3, 1.7*3.8e-3, 1.9*3.8e-3, 2.25*3.8e-3], [1.1*3.8e-3, 1.7*3.8e-3, 2.1*3.8e-3, 2.3*3.8e-3, 2.5*3.8e-3]]"
+            et_off_table_out = "[[0.0, 0.0275e-3, 0.15e-3, 0.275e-3, 0.3e-3], [0.35*2.1e-3, 0.4*2.1e-3, 0.8*2.1e-3, 0.68*2.1e-3, 0.9*2.1e-3], [0.65*2.1e-3, 0.9*2.1e-3, 1.2*2.1e-3, 1.5*2.1e-3, 1.7*2.1e-3], [0.9*2.1e-3, 1.3*2.1e-3, 1.7*2.1e-3, 1.9*2.1e-3, 2.25*2.1e-3], [1.1*2.1e-3, 1.7*2.1e-3, 2.1*2.1e-3, 2.3*2.1e-3, 2.5*2.1e-3]]"
+            ed_off_table_out = "[[0.0, 0.0275e-3, 0.15e-3, 0.275e-3, 0.3e-3], [0.35*2.2e-3, 0.4*2.2e-3, 0.8*2.2e-3, 0.68*2.2e-3, 0.9*2.2e-3], [0.65*2.2e-3, 0.9*2.2e-3, 1.2*2.2e-3, 1.5*2.2e-3, 1.7*2.2e-3], [0.9*2.2e-3, 1.3*2.2e-3, 1.7*2.2e-3, 1.9*2.2e-3, 2.25*2.2e-3], [1.1*2.2e-3, 1.7*2.2e-3, 2.1*2.2e-3, 2.3*2.2e-3, 2.5*2.2e-3]]"
+            temp_estimation = "False"
+            thermal_networks_type = "Foster"
+            switch_Rth = "[0.159, 0.133, 0.120, 0.038]"
+            switch_Tth = "[1.1e-1, 1.56e-2, 1.35e-3, 1.51e-4]"
+            switch_Cth = "[0.0029, 0.0097, 0.1068, 0.8500]"
+            diode_Rth = "[0.159, 0.133, 0.120, 0.038]"
+            diode_Tth = "[1.1e-1, 1.56e-2, 1.35e-3, 1.51e-4]"
+            diode_Cth = "[0.0029, 0.0097, 0.1068, 0.8500]"
+            loss_exec_rate = "100e-6"
+            visualize_luts = "Visualize Lookup Tables"
+            show_monitoring = "False"
+        }
+
+        "core/Current Measurement" {
+            signal_access = "inherit"
+            bw_limit = "False"
+            frequency = "10e3"
+            comparator_enable = "False"
+            operator = "greater"
+            threshold = "0"
+            cmp_abs_value = "False"
+            feed_forward = "false"
+            sig_output = "False"
+            sig_output_filt_and_full_bw = "False"
+            execution_rate = "100e-6"
+            addr = "0"
+            nd_msr_estimation = "false"
+            dev_cpl_msr = "false"
+            host_device = "0"
+            output_to_device = "0"
+            dev_cpl_index = "0"
+            dev_cpl_var_nb = "0"
+            visible = "True"
+            override_signal_name = "False"
+            signal_name = ""
+        }
+
+        "core/Voltage Measurement" {
+            signal_access = "inherit"
+            bw_limit = "False"
+            frequency = "10e3"
+            comparator_enable = "False"
+            operator = "greater"
+            threshold = "0"
+            cmp_abs_value = "False"
+            feed_forward = "false"
+            sig_output = "False"
+            sig_output_filt_and_full_bw = "False"
+            execution_rate = "100e-6"
+            addr = "0"
+            nd_msr_estimation = "false"
+            dev_cpl_msr = "false"
+            host_device = "0"
+            output_to_device = "0"
+            dev_cpl_index = "0"
+            dev_cpl_var_nb = "0"
+            visible = "True"
+            override_signal_name = "False"
+            signal_name = ""
+        }
+    }
+}
