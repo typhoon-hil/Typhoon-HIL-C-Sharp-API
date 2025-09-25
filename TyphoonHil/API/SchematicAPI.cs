@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TyphoonHil.Communication;
 using TyphoonHil.Exceptions;
 
@@ -870,12 +871,12 @@ namespace TyphoonHil.API
             return (string)HandleRequest("get_hw_property", parameters)["result"];
         }
 
-        public JObject GetHwSettings()
+        public JArray GetHwSettings()
         {
             try
             {
                 var res = HandleRequest("get_hw_settings", new JObject());
-                return (JObject)res["result"];
+                return (JArray)res["result"];
             }
             catch (SchematicAPIException)
             {
@@ -1384,16 +1385,28 @@ namespace TyphoonHil.API
             HandleRequest("remove_property", parameters);
         }
 
-        public bool SetComponentProperty(string component, string property, string value)
+        public bool SetComponentProperty(string component, string property, object value)
         {
             var parameters = new JObject
             {
-                { "value", value },
                 { "component", component },
-                { "property", property }
+                { "property", property },
+                { "value", JToken.FromObject(value) }
             };
 
-            return (bool)HandleRequest("set_component_property", parameters)["result"];
+            var response = HandleRequest("set_component_property", parameters);
+
+            // Log the response for debugging
+            // Console.WriteLine($"SetComponentProperty Response: {response}");
+
+            // Check for null result and handle appropriately
+            if (response["result"] == null)
+            {
+                // Console.WriteLine("Error: Result is null. Property could not be set.");
+                return false;
+            }
+
+            return response["result"].ToObject<bool>();
         }
 
         public void SetDescription(JObject itemHandle, string description)
