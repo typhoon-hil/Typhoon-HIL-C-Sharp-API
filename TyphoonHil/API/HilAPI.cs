@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TyphoonHil.Communication;
 using TyphoonHil.Exceptions;
 
@@ -355,18 +356,21 @@ namespace TyphoonHil.API
             return (bool)result["result"];
         }
 
-        public bool StartCapture(List<object> cpSettings, List<object> trSettings, List<string> chSettings,
-            List<object> dataBuffer, string fileName = "", double? executeAt = null, double? timeout = null)
+        public bool StartCapture(List<object> cpSettings, List<object> trSettings, List<List<string>> chSettings,
+            List<object> dataBuffer, string fileName = "", double? executeAt = null, double? timeout = null, string timeFormat = "relative")
         {
             var parameters = new JObject
             {
                 { "cpSettings", new JArray(cpSettings) },
                 { "trSettings", new JArray(trSettings) },
-                { "chSettings", new JArray(chSettings) },
+                { "chSettings", new JArray(
+                    chSettings.Select(subList => new JArray(subList))
+                    ) },
                 { "dataBuffer", new JArray(dataBuffer) },
                 { "fileName", fileName },
                 { "executeAt", executeAt },
-                { "timeout", timeout }
+                { "timeout", timeout },
+                { "timeFormat", timeFormat }
             };
 
             var result = HandleRequest("start_capture", parameters);
@@ -403,8 +407,6 @@ namespace TyphoonHil.API
 
             return (bool)result["result"];
         }
-
-        // ====================================================
 
         public bool LoadModelState(string loadFrom)
         {
@@ -689,13 +691,36 @@ namespace TyphoonHil.API
             return (bool)HandleRequest("set_pv_input_file", parameters)["result"];
         }
 
+        /*        public PvAmbRes SetPvAmbParams(string name, double? illumination = null, double? temperature = null,
+                    double? isc = null, double? voc = null, double? executeAt = null, double? rampTime = 0, string rampType = "lin")
+                {
+                    var parameters = new JObject
+                    {
+                        { "name", name },
+                        { "illumination", illumination },
+                        { "temperature", temperature },
+                        { "isc", isc },
+                        { "voc", voc },
+                        { "executeAt", executeAt },
+                        { "ramp_time", rampTime },
+                        { "ramp_type", rampType }
+                    };
+
+                    return new PvAmbRes((JArray)HandleRequest("set_pv_amb_params", parameters)["result"]);
+                }*/
+
         public PvAmbRes SetPvAmbParams(string name, double? illumination = null, double? temperature = null,
             double? isc = null, double? voc = null, double? executeAt = null, double? rampTime = 0, string rampType = "lin")
         {
-            var parameters = new JObject
-            {
-                { "name", name }
-            };
+            var parameters = new JObject { { "name", name } };
+            if (illumination.HasValue) parameters.Add("illumination", illumination.Value);
+            if (temperature.HasValue) parameters.Add("temperature", temperature.Value);
+            if (isc.HasValue) parameters.Add("isc", isc.Value);
+            if (voc.HasValue) parameters.Add("voc", voc.Value);
+            if (executeAt.HasValue) parameters.Add("executeAt", executeAt.Value);
+
+            parameters.Add("ramp_time", rampTime);
+            parameters.Add("ramp_type", rampType);
 
             // Add parameters conditionally only if they have a value
             if (illumination.HasValue)
@@ -1339,12 +1364,14 @@ namespace TyphoonHil.API
                 .ToList();
         }
 
-        public List<string> GetDigitalSignals()
+        public List<List<string>> GetDigitalSignals()
         {
             var parameters = new JObject();
 
-            return ((JArray)HandleRequest("get_digital_signals", parameters)["result"]).Select(item => (string)item)
-                .ToList();
+            var result = (JArray)HandleRequest("get_digital_signals", parameters)["result"];
+
+            return result.Select(deviceSignals => deviceSignals.Select(sig => (string)sig).ToList())
+                         .ToList();
         }
 
         public List<string> GetStreamingAnalogSignals()
