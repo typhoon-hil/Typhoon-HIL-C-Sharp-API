@@ -134,6 +134,12 @@ namespace TyphoonHil.API.Tests
         }
 
         [TestMethod()]
+        public void StartCaptureTest()
+        {
+            Assert.Fail();
+        }
+
+        [TestMethod()]
         public void CaptureInProgressTest()
         {
             Assert.Fail();
@@ -386,8 +392,7 @@ namespace TyphoonHil.API.Tests
         }
 
         [TestMethod()]
-        public void Stop
-CaptureTest()
+        public void StopCaptureTest()
         {
             Assert.Fail();
         }
@@ -1094,6 +1099,257 @@ namespace TyphoonHilTests.API
             Assert.IsNotNull(result); // Ensure the result is not null
             Assert.IsTrue(result); // We expect the upload operation to succeed
             Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mock was triggered
+
+            // Mock response for "save_settings_file"
+            if (method == "save_settings_file")
+            {
+                // You can mock a successful save operation
+                return new JObject { { "result", true } };
+            }
+
+            // Mock response for "save_model_state"
+            if (method == "save_model_state")
+            {
+                // Assume the save operation is successful
+                var mockResponse = new JObject
+                {
+                    ["result"] = true
+                };
+                return mockResponse;
+            }
+
+            // Mock response for "load_model_state"
+            if (method == "load_model_state")
+            {
+                // Assume the load operation is successful
+                var mockResponse = new JObject
+                {
+                    ["result"] = true
+                };
+                return mockResponse;
+            }
+
+            // Mock response for "upload_standalone_model"
+            if (method == "upload_standalone_model")
+            {
+                // Assume the upload operation is successful
+                var mockResponse = new JObject
+                {
+                    ["result"] = true // Simulating a successful upload
+                };
+                return mockResponse;
+            }
+
+            // Mock response for "model_write"
+            if (method == "model_write")
+            {
+                // Simulating a successful model write
+                var mockResponse = new JObject
+                {
+                    ["result"] = true // Mock response indicating success
+                };
+                return mockResponse;
+            }
+
+            // Mock response for "model_read"
+            if (method == "model_read")
+            {
+                // Simulate a successful model read with a mock value
+                var mockResponse = new JObject
+                {
+                    ["result"] = MockModelReadValue
+                };
+                return mockResponse;
+            }
+
+            // Mock response for "get_pe_switching_block_settings"
+            if (method == "get_pe_switching_block_settings")
+            {
+                var blockName = parameters["blockName"]?.ToString() ?? "";
+                var switchName = parameters["switchName"]?.ToString() ?? "";
+
+                // Mock response for testing purposes
+                var mockResponse = new JObject
+                {
+                    ["result"] = new JObject
+                    {
+                        ["software_control_enabled"] = true,
+                        ["software_value"] = 1
+                    }
+                };
+                return mockResponse;
+            }
+
+            // Call base method or handle other cases
+            return base.HandleRequest(method, parameters);
+        }
+
+        [TestMethod]
+        public void ModelWriteSingleValueTest()
+        {
+            // Arrange
+            var testableApi = new HilAPITestable();
+            string modelVariable = "Vgrid.rms"; // Example model variable
+            double newValue = 25.0; // Example value
+
+            // Act
+            var result = testableApi.ModelWrite(modelVariable, newValue);
+
+            // Output details to the console for debugging purposes
+            Console.WriteLine($"Result: {result}");
+            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
+
+            // Assert
+            Assert.IsNotNull(result); // Ensure the result is not null
+            Assert.IsTrue(result); // Expect the model write operation to succeed
+            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mock was triggered
+        }
+
+        [TestMethod]
+        public void ModelWriteListValueTest()
+        {
+            // Arrange
+            var testableApi = new HilAPITestable();
+            string modelVariable = "Vgrid.rms"; // Example model variable
+            List<double> newValues = new List<double> { 25.0, 30.0, 35.0 }; // Example list of values
+
+            // Act
+            var result = testableApi.ModelWrite(modelVariable, newValues);
+
+            // Output details to the console for debugging purposes
+            Console.WriteLine($"Result: {result}");
+            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
+
+            // Assert
+            Assert.IsNotNull(result); // Ensure the result is not null
+            Assert.IsTrue(result); // Expect the model write operation to succeed
+            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mock was triggered
+        }
+
+        [TestMethod]
+        public void LoadModelTest()
+        {
+            // This test calling real load_model function and using the compiled model from the location:
+            // .\Typhoon-HIL-C-Sharp-API\TyphoonHilTests\ProtectedData\3ph rectifier\3ph rectifier Target files 
+
+            // Arrange
+            var testableApi = new HilAPITestable();
+
+            var filePath = Path.Combine(ProtectedDataPath, "3ph rectifier", "3ph rectifier Target files", "3ph rectifier.cpd");
+            Console.WriteLine($"File path is: {filePath}");
+            // Act
+            var result = testableApi.LoadModel(filePath, false, true);
+
+            // Output details to the console
+            Console.WriteLine($"LoadModel: {result}");
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void LoadSettingsFileTest()
+        {
+            // This test calling real load_settings_file function and using the setting.runx from the location:
+            // .\Typhoon-HIL-C-Sharp-API\TyphoonHilTests\ProtectedData\3ph rectifier\
+
+            // Arrange
+            var testableApi = new HilAPITestable();
+
+            var filePath = Path.Combine(ProtectedDataPath, "3ph rectifier", "settings.runx");
+            Console.WriteLine($"File path is: {filePath}");
+
+            // Act
+            var result = testableApi.LoadSettingsFile(filePath);
+
+            // Output details to the console
+            Console.WriteLine($"LoadModel: {result}");
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod()]
+        public void SaveSettingsFileTest()
+        {
+            // Arrange
+            var testableApi = new HilAPITestable();
+
+            var filePath = Path.Combine(ProtectedDataPath, "3ph rectifier", "init.runx");
+            Console.WriteLine($"File path is: {filePath}");
+
+            // Act
+            var result = testableApi.SaveSettingsFile(filePath);
+
+            // Output details to the console
+            Console.WriteLine($"Result: {result}");
+            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
+
+            // Assert
+            Assert.IsTrue(result); // Expecting the operation to succeed based on the mock
+            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the request was actually made
+        }
+
+        [TestMethod]
+        public void SaveModelStateTest()
+        {
+            // Arrange
+            var testableApi = new HilAPITestable();
+            string testFilePath = @"./model_state.ms"; // Path for saving the model state
+
+            // Act
+            var result = testableApi.SaveModelState(testFilePath);
+
+            // Output details to the console for debugging purposes
+            Console.WriteLine($"Result: {result}");
+            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
+
+            // Assert
+            Assert.IsNotNull(result); // Ensure result is not null
+            Assert.IsTrue(result); // We expect the save operation to succeed
+            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mocked HandleRequest was called
+        }
+
+        [TestMethod]
+        public void LoadModelStateTest()
+        {
+            // Arrange
+            var testableApi = new HilAPITestable();
+            string testFilePath = @"./model_state.ms"; // Path to the saved model state file
+
+            // Act
+            var result = testableApi.LoadModelState(testFilePath);
+
+            // Output details to the console for debugging purposes
+            Console.WriteLine($"Result: {result}");
+            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
+
+            // Assert
+            Assert.IsNotNull(result); // Ensure result is not null
+            Assert.IsTrue(result); // We expect the load operation to succeed
+            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mocked HandleRequest was called
+        }
+
+        [TestMethod]
+        public void UploadStandaloneModelTest()
+        {
+            // Arrange
+            var testableApi = new HilAPITestable();
+            int modelLocation = 1; // Slot number to upload the model
+
+            // Act
+            var result = testableApi.UploadStandaloneModel(modelLocation);
+
+            // Output details to the console for debugging purposes
+            Console.WriteLine($"Result: {result}");
+            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
+
+            // Assert
+            Assert.IsNotNull(result); // Ensure the result is not null
+            Assert.IsTrue(result); // We expect the upload operation to succeed
+            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mock was triggered
         }
 
         [TestMethod]
@@ -1318,7 +1574,7 @@ namespace TyphoonHilTests.API
         public void SetPeSwitchingBlockControlModeTest_HIL()
         {
             // Using the THCC with compiled and loaded model
-            // from \t_sw\tests\20_standalone\200_simple_buck\hil_model\simple_buck.tse
+            // from \t_sw\tests\20_standalone\200_simple_buck\simple_buck.tse
 
             var model = new HilAPI();
             var blockName = "buck_1";
@@ -1359,7 +1615,7 @@ namespace TyphoonHilTests.API
         public void SetPeSwitchingBlockSoftwareValueTest_HIL()
         {
             // Using the THCC with compiled and loaded model
-            // from \t_sw\tests\20_standalone\200_simple_buck\hil_model\simple_buck.tse
+            // from \t_sw\tests\20_standalone\200_simple_buck\simple_buck.tse
 
             // Arange
             var model = new HilAPI();
@@ -1837,8 +2093,6 @@ namespace TyphoonHilTests.API
             Console.WriteLine("Simulation stopped on HIL device.");
             Assert.IsFalse(api.IsSimulationRunning(), "Simulation should be stopped.");
         }
-
-
 
     }
 }

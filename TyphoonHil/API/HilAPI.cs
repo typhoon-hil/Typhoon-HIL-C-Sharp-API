@@ -106,6 +106,7 @@ namespace TyphoonHil.API
             {
                 var res = Request(method, parameters);
                 // Console.WriteLine("HandleRequest - The result contain error: " + res.ContainsKey("error").ToString());
+                // Console.WriteLine("The result of Request is: " + res.ToString());
                 if (!res.ContainsKey("error")) return res;
                 // Console.WriteLine("HandleRequest - The error message is: " + res["error"].ToString());
                 var msg = res["error"] == null ? null : (string)res["error"]["message"];
@@ -721,8 +722,31 @@ namespace TyphoonHil.API
             parameters.Add("ramp_time", rampTime);
             parameters.Add("ramp_type", rampType);
 
-            return new PvAmbRes((JArray)HandleRequest("set_pv_amb_params", parameters)["result"]);
+            // Add parameters conditionally only if they have a value
+            if (illumination.HasValue)
+                parameters.Add("illumination", illumination.Value);
+            if (temperature.HasValue)
+                parameters.Add("temperature", temperature.Value);
+            if (isc.HasValue)
+                parameters.Add("isc", isc.Value);
+            if (voc.HasValue)
+                parameters.Add("voc", voc.Value);
+            if (executeAt.HasValue)
+                parameters.Add("executeAt", executeAt.Value);
+            if (rampTime.HasValue)
+                parameters.Add("ramp_time", rampTime.Value);
+            if (!string.IsNullOrEmpty(rampType))
+                parameters.Add("ramp_type", rampType);
+
+            // Call the API
+            var response = HandleRequest("set_pv_amb_params", parameters);
+
+            // Log response for debugging
+            Console.WriteLine($"SetPvAmbParams Response: {response}");
+
+            return new PvAmbRes((JArray)response["result"]);
         }
+
 
         public bool SetAnalogOutputSignal(int channel, string name, int device = 0)
         {
@@ -1447,7 +1471,22 @@ namespace TyphoonHil.API
                 { "switchName", switchName }
             };
 
-            return (JObject)HandleRequest("get_pe_switching_block_settings", parameters)["result"];
+            // Call HandleRequest to get the response
+            var response = HandleRequest("get_pe_switching_block_settings", parameters);
+
+            // Check if the "result" is a JObject, else return null
+            var result = response["result"] as JObject;
+            if (result == null)
+            {
+                // Handle the case when the switch does not exist or any other invalid response
+                Console.WriteLine($"Switch '{switchName}' not found in block '{blockName}' or invalid response.");
+                return null; // Returning null indicates the switch was not found
+            }
+
+            // Return the JObject containing the settings
+            return result;
+
+            // return (JObject)HandleRequest("get_pe_switching_block_settings", parameters)["result"];
         }
 
         public JObject GetContactorSettings(string name)

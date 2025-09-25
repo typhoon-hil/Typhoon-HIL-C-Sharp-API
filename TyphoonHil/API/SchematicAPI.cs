@@ -273,6 +273,7 @@ namespace TyphoonHil.API
             return Request("load", new JObject { { "filename", filename } });
         }
 
+
         public void Save()
         {
             HandleRequest("save", new JObject());
@@ -402,16 +403,18 @@ namespace TyphoonHil.API
             return (JObject)HandleRequest("create_connection", parameters)["result"];
         }
 
-        public JObject SetPropertyValue(JObject propertyHandle, object value)
+
+        public void SetPropertyValue(JObject propHandle, object propValue)
         {
             var parameters = new JObject
             {
-                { "prop_handle", propertyHandle },
-                { "value", JToken.FromObject(value) }
+                { "prop_handle", propHandle },
+                { "value", JToken.FromObject(propValue) }
             };
 
-            return Request("set_property_value", parameters);
+            HandleRequest("set_property_value", parameters);
         }
+
 
         public JObject Prop(JObject itemHandle, string propertyName)
         {
@@ -1112,14 +1115,15 @@ namespace TyphoonHil.API
             return (JObject)HandleRequest("get_property_type_attributes", parameters)["result"];
         }
 
-        public string GetPropertyValue(JObject propHandle)
+
+        public JToken GetPropertyValue(JObject propHandle)
         {
             var parameters = new JObject
             {
                 { "prop_handle", propHandle }
             };
 
-            return (string)HandleRequest("get_property_value", parameters)["result"];
+            return HandleRequest("get_property_value", parameters)["result"];
         }
 
         public string GetPropertyValueType(JObject propHandle)
@@ -1408,6 +1412,7 @@ namespace TyphoonHil.API
 
             return response["result"].ToObject<bool>();
         }
+
 
         public void SetDescription(JObject itemHandle, string description)
         {

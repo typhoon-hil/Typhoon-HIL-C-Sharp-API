@@ -119,12 +119,28 @@ namespace TyphoonHil.Communication
         {
             const string varName = "TYPHOONPATH";
             var varValue = Environment.GetEnvironmentVariable(varName) ?? throw new Exception("THCC does not exist");
-            var typhoonHilRoot = varValue.Remove(varValue.Length - 1);
-            var exePath = Path.Combine(typhoonHilRoot, "typhoon_hil.exe");
 
+            // Split the environment variable using the path separator
+            var paths = varValue.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Ensure there is at least one path in the environment variable
+            if (paths.Length == 0)
+                throw new Exception("No valid paths found in TYPHOONPATH");
+
+            // Take the first path (newest installed version)
+            var newestVersionPath = paths[0];
+
+            // Create the path to the executable
+            var exePath = Path.Combine(newestVersionPath, "typhoon_hil.exe");
+
+            // Check if the executable exists
+            if (!File.Exists(exePath))
+                throw new Exception($"Executable not found at path: {exePath}");
+
+            // Start the THCC
             var startInfo = new ProcessStartInfo(exePath)
             {
-                WorkingDirectory = typhoonHilRoot
+                WorkingDirectory = newestVersionPath
             };
 
             Process.Start(startInfo);
