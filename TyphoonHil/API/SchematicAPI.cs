@@ -404,12 +404,12 @@ namespace TyphoonHil.API
         }
 
 
-        public void SetPropertyValue(JObject propHandle, object propValue)
+        public void SetPropertyValue(JObject propHandle, object value)
         {
             var parameters = new JObject
             {
                 { "prop_handle", propHandle },
-                { "value", JToken.FromObject(propValue) }
+                { "value", JToken.FromObject(value) }
             };
 
             HandleRequest("set_property_value", parameters);
@@ -1114,7 +1114,6 @@ namespace TyphoonHil.API
 
             return (JObject)HandleRequest("get_property_type_attributes", parameters)["result"];
         }
-
 
         public JToken GetPropertyValue(JObject propHandle)
         {

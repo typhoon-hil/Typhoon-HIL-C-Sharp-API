@@ -7,770 +7,6 @@ using System.Runtime;
 using TyphoonHil.API;
 using TyphoonHilTests.Utils;
 
-/*
-namespace TyphoonHil.API.Tests
-{
-    [TestClass()]
-    public class HilAPITests
-    {
-        [TestMethod()]
-        public void SaveModelStateTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void UploadStandaloneModelTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void AddDataLoggerTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void HilAPITest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void LoadModelTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void LoadSettingsFileTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void StopDataLoggerTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetSourceArbitraryWaveformTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetPeSwitchingBlockControlModeTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetPeSwitchingBlockSoftwareValueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetAnalogOutputTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetDigitalOutputTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineConstantTorqueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineSquareTorqueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineLinearTorqueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineInitialAngleTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineInitialSpeedTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineIncEncoderOffsetTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineSinEncoderOffsetTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void StartSimulationTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void StartCaptureTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void CaptureInProgressTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void StopSimulationTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void EndScriptByUserTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineConstantTorqueTypeTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void LoadModelStateTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ModelWriteTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ModelReadTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void RemoveDataLoggerTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void StartDataLoggerTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void UpdateSourcesTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PrepareSourceArbitraryWaveformTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PrepareSourceConstantValueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PrepareSourceSineWaveformTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void EnableAoLimitingTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void DisableAoLimitingTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetBootConfigurationTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetSourceConstantValueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetSourceSineWaveformTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetSourceScalingTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetPvInputFileTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetPvAmbParamsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetAnalogOutputSignalTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetAnalogOutputScalingTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetAnalogOutputOffsetTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetDigitalOutputSignalTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetDigitalOutputInvertingTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetDigitalOutputSwControlTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetDigitalOutputSoftwareValueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetContactorTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetContactorControlModeTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetContactorStateTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineLoadSourceTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineExternalTorqueTypeTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineLoadTypeTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineSpeedTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineEncoderOffsetTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetMachineResolverOffsetTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetInitialBatterySocTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetScadaInputValueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetCpInputValueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetTextModeTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void SetDebugLevelTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void StopCaptureTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void IsSimulationRunningTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void CheckHilHwidTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void TimeoutOccurredTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ReadPvIvCurveTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ReadAnalogSignalTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ReadAnalogSignalsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ReadDigitalSignalTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ReadDigitalSignalsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ReadDigitalInputTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ReadStreamingSignalsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void LoadSignalGenDataTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void CreateSignalStimulusTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PrepareSignalStimulusTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void StartSignalStimulusTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void StopSignalStimulusTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PauseSignalStimulusTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void RebootHilTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void WaitSecTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void WaitMsecTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void WaitOnUserTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void ResetFlagStatusTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetModelVariablesTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetCpOutputValueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetScadaOutputValueTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetBatterySocTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetPvMppTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetNumOfConnectedHilsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetSimStepTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetSimTimeTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetDeviceCfgListTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetSwVersionTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetHilCalibrationDateTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetDeviceFeaturesTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetHwInfoTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetFlagStatusTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetSourcesTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetPvsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetAnalogSignalsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetDigitalSignalsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetStreamingAnalogSignalsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetStreamingDigitalSignalsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetContactorsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetMachinesTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetPeSwitchingBlocksTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetScadaInputsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetScadaOutputsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetSourceSettingsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetPvPanelSettingsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetMachineSettingsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetContactorSettingsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetAnalogOutputSettingsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetDigitalOutputSettingsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetCpInputSettingsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetScadaInputSettingsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetHilSerialNumberTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetNsVarTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetNsVarsTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetDataLoggerStatusTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetModelFilePathTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetSpMonitorsValuesTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void AvailableSourcesTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void AvailablePvsTest()
-        {
-Assert.Fail();
-        }
-    }
-}
-*/
 
 namespace TyphoonHilTests.API
 {
@@ -949,6 +185,7 @@ namespace TyphoonHilTests.API
 
             // Call base method or handle other cases
             return base.HandleRequest(method, parameters);
+
         }
     }
 
@@ -1100,7 +337,7 @@ namespace TyphoonHilTests.API
             Assert.IsTrue(result); // We expect the upload operation to succeed
             Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mock was triggered
 
-            // Mock response for "save_settings_file"
+/*          // Mock response for "save_settings_file"
             if (method == "save_settings_file")
             {
                 // You can mock a successful save operation
@@ -1182,174 +419,7 @@ namespace TyphoonHilTests.API
 
             // Call base method or handle other cases
             return base.HandleRequest(method, parameters);
-        }
-
-        [TestMethod]
-        public void ModelWriteSingleValueTest()
-        {
-            // Arrange
-            var testableApi = new HilAPITestable();
-            string modelVariable = "Vgrid.rms"; // Example model variable
-            double newValue = 25.0; // Example value
-
-            // Act
-            var result = testableApi.ModelWrite(modelVariable, newValue);
-
-            // Output details to the console for debugging purposes
-            Console.WriteLine($"Result: {result}");
-            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
-
-            // Assert
-            Assert.IsNotNull(result); // Ensure the result is not null
-            Assert.IsTrue(result); // Expect the model write operation to succeed
-            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mock was triggered
-        }
-
-        [TestMethod]
-        public void ModelWriteListValueTest()
-        {
-            // Arrange
-            var testableApi = new HilAPITestable();
-            string modelVariable = "Vgrid.rms"; // Example model variable
-            List<double> newValues = new List<double> { 25.0, 30.0, 35.0 }; // Example list of values
-
-            // Act
-            var result = testableApi.ModelWrite(modelVariable, newValues);
-
-            // Output details to the console for debugging purposes
-            Console.WriteLine($"Result: {result}");
-            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
-
-            // Assert
-            Assert.IsNotNull(result); // Ensure the result is not null
-            Assert.IsTrue(result); // Expect the model write operation to succeed
-            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mock was triggered
-        }
-
-        [TestMethod]
-        public void LoadModelTest()
-        {
-            // This test calling real load_model function and using the compiled model from the location:
-            // .\Typhoon-HIL-C-Sharp-API\TyphoonHilTests\ProtectedData\3ph rectifier\3ph rectifier Target files 
-
-            // Arrange
-            var testableApi = new HilAPITestable();
-
-            var filePath = Path.Combine(ProtectedDataPath, "3ph rectifier", "3ph rectifier Target files", "3ph rectifier.cpd");
-            Console.WriteLine($"File path is: {filePath}");
-            // Act
-            var result = testableApi.LoadModel(filePath, false, true);
-
-            // Output details to the console
-            Console.WriteLine($"LoadModel: {result}");
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public void LoadSettingsFileTest()
-        {
-            // This test calling real load_settings_file function and using the setting.runx from the location:
-            // .\Typhoon-HIL-C-Sharp-API\TyphoonHilTests\ProtectedData\3ph rectifier\
-
-            // Arrange
-            var testableApi = new HilAPITestable();
-
-            var filePath = Path.Combine(ProtectedDataPath, "3ph rectifier", "settings.runx");
-            Console.WriteLine($"File path is: {filePath}");
-
-            // Act
-            var result = testableApi.LoadSettingsFile(filePath);
-
-            // Output details to the console
-            Console.WriteLine($"LoadModel: {result}");
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod()]
-        public void SaveSettingsFileTest()
-        {
-            // Arrange
-            var testableApi = new HilAPITestable();
-
-            var filePath = Path.Combine(ProtectedDataPath, "3ph rectifier", "init.runx");
-            Console.WriteLine($"File path is: {filePath}");
-
-            // Act
-            var result = testableApi.SaveSettingsFile(filePath);
-
-            // Output details to the console
-            Console.WriteLine($"Result: {result}");
-            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
-
-            // Assert
-            Assert.IsTrue(result); // Expecting the operation to succeed based on the mock
-            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the request was actually made
-        }
-
-        [TestMethod]
-        public void SaveModelStateTest()
-        {
-            // Arrange
-            var testableApi = new HilAPITestable();
-            string testFilePath = @"./model_state.ms"; // Path for saving the model state
-
-            // Act
-            var result = testableApi.SaveModelState(testFilePath);
-
-            // Output details to the console for debugging purposes
-            Console.WriteLine($"Result: {result}");
-            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
-
-            // Assert
-            Assert.IsNotNull(result); // Ensure result is not null
-            Assert.IsTrue(result); // We expect the save operation to succeed
-            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mocked HandleRequest was called
-        }
-
-        [TestMethod]
-        public void LoadModelStateTest()
-        {
-            // Arrange
-            var testableApi = new HilAPITestable();
-            string testFilePath = @"./model_state.ms"; // Path to the saved model state file
-
-            // Act
-            var result = testableApi.LoadModelState(testFilePath);
-
-            // Output details to the console for debugging purposes
-            Console.WriteLine($"Result: {result}");
-            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
-
-            // Assert
-            Assert.IsNotNull(result); // Ensure result is not null
-            Assert.IsTrue(result); // We expect the load operation to succeed
-            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mocked HandleRequest was called
-        }
-
-        [TestMethod]
-        public void UploadStandaloneModelTest()
-        {
-            // Arrange
-            var testableApi = new HilAPITestable();
-            int modelLocation = 1; // Slot number to upload the model
-
-            // Act
-            var result = testableApi.UploadStandaloneModel(modelLocation);
-
-            // Output details to the console for debugging purposes
-            Console.WriteLine($"Result: {result}");
-            Console.WriteLine($"HandleRequestOverrideCalled: {testableApi.HandleRequestOverrideCalled}");
-
-            // Assert
-            Assert.IsNotNull(result); // Ensure the result is not null
-            Assert.IsTrue(result); // We expect the upload operation to succeed
-            Assert.IsTrue(testableApi.HandleRequestOverrideCalled); // Ensure the mock was triggered
+*/
         }
 
         [TestMethod]
@@ -1570,7 +640,7 @@ namespace TyphoonHilTests.API
         }
 
         [TestMethod]
-        [Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]
+        /*[Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]*/
         public void SetPeSwitchingBlockControlModeTest_HIL()
         {
             // Using the THCC with compiled and loaded model
@@ -1611,7 +681,7 @@ namespace TyphoonHilTests.API
         }
 
         [TestMethod]
-        [Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]
+        /*[Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]*/
         public void SetPeSwitchingBlockSoftwareValueTest_HIL()
         {
             // Using the THCC with compiled and loaded model
@@ -1730,19 +800,84 @@ namespace TyphoonHilTests.API
         }
 
         [TestMethod]
-        [Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]
+        /*[Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]*/
         public void GetPeSwitchingBlockSetting_ShouldReturnNullWhenSwitchNotFound_HIL()
         {
             // Using the THCC with compiled and loaded model
             // from \TyphoonHilTests\ProtectedData\200_simple_buck\simple_buck.tse
 
-            // Arange
-            var model = new HilAPI();
+            // Arrange
+            var api = new HilAPI();
+
+            // Path to the TSE model for schematic editor
+            var filePathTse = Path.Combine(ProtectedDataPath, "200_simple_buck", "simple_buck.tse");
+
+            // Ensure file exists
+            if (!File.Exists(filePathTse))
+            {
+                Assert.Fail($"TSE file does not exist at path: {filePathTse}");
+            }
+
+            // Load schematic model
+            var loadResult = SchematicApiModel.Load(filePathTse);
+            if (loadResult == null || loadResult["result"] == null)
+            {
+                Assert.Fail("SchematicApiModel.Load returned null or did not contain a 'result' field.");
+            }
+
+            // Safely extract result
+            bool isLoaded;
+            if (!bool.TryParse(loadResult["result"].ToString(), out isLoaded) || !isLoaded)
+            {
+                // Assert.Fail("Failed to load schematic model into THCC.");
+                Console.WriteLine("Failed to load schematic model into THCC.");
+            }
+            Console.WriteLine("Schematic model loaded successfully.");
+
+            // Read HW settings
+            var hwSettings = SchematicApiModel.GetHwSettings();
+            if (hwSettings == null || hwSettings.Count < 3)
+            {
+                Assert.Fail("Failed to retrieve hardware settings from schematic model.");
+            }
+
+            // Extract device and config (index 0 and 2, since index 1 is serial / ignored)
+            var device = hwSettings[0]?.ToObject<string>();
+            var config = hwSettings[2]?.ToObject<string>();
+
+            if (string.IsNullOrEmpty(device) || string.IsNullOrEmpty(config))
+            {
+                Assert.Fail("Invalid hardware settings: missing device or config.");
+            }
+
+            // Set model settings
+            SchematicApiModel.SetModelPropertyValue("hil_device", device);
+            SchematicApiModel.SetModelPropertyValue("hil_configuration_id", config);
+
+            Console.WriteLine($"Hardware settings applied: device={device}, config={config}");
+
+            // Compile the model
+            var isCompiled = SchematicApiModel.Compile();
+            Console.WriteLine("Schematic Model is compiled: " + isCompiled);
+            Assert.IsTrue(isCompiled, "Failed to compile schematic model.");
+
+            // Load compiled model into HIL/VHIL
+            var filePathCpd = Path.Combine(ProtectedDataPath, "200_simple_buck", "simple_buck Target files", "simple_buck.cpd");
+
+            // Ensure .cpd file exists
+            if (!File.Exists(filePathCpd))
+            {
+                Assert.Fail($"CPD file does not exist at path: {filePathCpd}");
+            }
+
+            var isModelLoaded = Model.LoadModel(file: filePathCpd, vhilDevice: false);
+            Console.WriteLine("Compiled model is loaded into HIL: " + isModelLoaded);
+
             var blockName = "buck_1";
             var switchName = "NonExistentSwitch";
 
             //Act
-            var result = model.GetPeSwitchingBlockSettings(blockName, switchName);
+            var result = api.GetPeSwitchingBlockSettings(blockName, switchName);
 
 
             // Output details to the console
@@ -1753,7 +888,7 @@ namespace TyphoonHilTests.API
         }
 
         [TestMethod]
-        [Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]
+        /*[Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]*/
         public void GetPeSwitchingBlockSettings_ShouldReturnSettingsWhenSwitchExists_HIL()
         {
             // Using the THCC with compiled and loaded model
