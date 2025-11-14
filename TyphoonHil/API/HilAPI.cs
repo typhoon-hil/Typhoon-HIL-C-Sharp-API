@@ -712,38 +712,18 @@ namespace TyphoonHil.API
         public PvAmbRes SetPvAmbParams(string name, double? illumination = null, double? temperature = null,
             double? isc = null, double? voc = null, double? executeAt = null, double? rampTime = 0, string rampType = "lin")
         {
-            var parameters = new JObject { { "name", name } };
-            if (illumination.HasValue) parameters.Add("illumination", illumination.Value);
-            if (temperature.HasValue) parameters.Add("temperature", temperature.Value);
-            if (isc.HasValue) parameters.Add("isc", isc.Value);
-            if (voc.HasValue) parameters.Add("voc", voc.Value);
-            if (executeAt.HasValue) parameters.Add("executeAt", executeAt.Value);
+            var parameters = new JObject { ["name"] = name };
 
-            parameters.Add("ramp_time", rampTime);
-            parameters.Add("ramp_type", rampType);
+            if (illumination.HasValue) parameters["illumination"] = illumination.Value;
+            if (temperature.HasValue) parameters["temperature"] = temperature.Value;
+            if (isc.HasValue) parameters["isc"] = isc.Value;
+            if (voc.HasValue) parameters["voc"] = voc.Value;
+            if (executeAt.HasValue) parameters["executeAt"] = executeAt.Value;
+            if (rampTime.HasValue) parameters["ramp_time"] = rampTime.Value;
+            if (!string.IsNullOrEmpty(rampType)) parameters["ramp_type"] = rampType;
 
-            // Add parameters conditionally only if they have a value
-            if (illumination.HasValue)
-                parameters.Add("illumination", illumination.Value);
-            if (temperature.HasValue)
-                parameters.Add("temperature", temperature.Value);
-            if (isc.HasValue)
-                parameters.Add("isc", isc.Value);
-            if (voc.HasValue)
-                parameters.Add("voc", voc.Value);
-            if (executeAt.HasValue)
-                parameters.Add("executeAt", executeAt.Value);
-            if (rampTime.HasValue)
-                parameters.Add("ramp_time", rampTime.Value);
-            if (!string.IsNullOrEmpty(rampType))
-                parameters.Add("ramp_type", rampType);
-
-            // Call the API
             var response = HandleRequest("set_pv_amb_params", parameters);
-
-            // Log response for debugging
             Console.WriteLine($"SetPvAmbParams Response: {response}");
-
             return new PvAmbRes((JArray)response["result"]);
         }
 
