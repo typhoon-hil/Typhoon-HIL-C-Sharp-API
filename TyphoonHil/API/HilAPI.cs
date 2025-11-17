@@ -625,9 +625,9 @@ namespace TyphoonHil.API
             return (bool)HandleRequest("set_source_constant_value", parameters)["result"];
         }
 
-        public bool SetSourceSineWaveform(List<string> names, List<double> rms = null, List<double> frequency = null,
+        public bool SetSourceSineWaveform(List<string> names, List<double> rms = null, List<double> frequency = null, 
             List<double> phase = null, List<Harmonic> harmonics = null, List<Harmonic> harmonicsPu = null,
-            double? executeAt = null, int rampTime = 0, string rampType = "lin")
+            double? executeAt = null, double? rampTime = 0.0, string rampType = "lin")
         {
             var parameters = new JObject
             {
@@ -635,8 +635,8 @@ namespace TyphoonHil.API
                 { "rms", rms == null ? null : new JArray(rms) },
                 { "frequency", frequency == null ? null : new JArray(frequency) },
                 { "phase", phase == null ? null : new JArray(phase) },
-                { "harmonics", harmonics == null ? null : new JArray(harmonics.Select(item => item.JArray)) },
-                { "harmonics_pu", harmonicsPu == null ? null : new JArray(harmonicsPu.Select(item => item.JArray)) },
+                { "harmonics", harmonics == null ? null : new JArray(harmonics.Select(h => h.JArray)) },
+                { "harmonics_pu", harmonicsPu == null ? null : new JArray(harmonicsPu.Select(h => h.JArray)) },
                 { "executeAt", executeAt },
                 { "ramp_time", rampTime },
                 { "ramp_type", rampType }
