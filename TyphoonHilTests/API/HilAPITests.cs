@@ -623,10 +623,21 @@ namespace TyphoonHilTests.API
             new Harmonic(5, 0.05, 90),
             new Harmonic(7, 0.03, 270)
             };
+            var rampTime = 0.25;
 
 
             // Act
-            var result = testableApi.SetSourceSineWaveform(names, rms, frequency, phase, harmonicsPu);
+            var result = testableApi.SetSourceSineWaveform(
+                names: names,
+                rms: rms,
+                frequency: frequency,
+                phase: phase,
+                harmonics: null,
+                harmonicsPu: harmonicsPu,
+                executeAt: null,
+                rampTime: rampTime,
+                rampType: "lin"
+            );
 
 
             // Output details to the console
