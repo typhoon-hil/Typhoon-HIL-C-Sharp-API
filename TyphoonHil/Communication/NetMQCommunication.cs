@@ -114,7 +114,7 @@ namespace TyphoonHil.Communication
                 // Send & receive over the persistent socket
                 socket.SendFrame(message.ToString());
 
-                // You can switch to TryReceiveFrameString with timeout if desired
+                // Can be switched to TryReceiveFrameString with timeout if desired
                 var answer = socket.ReceiveFrameString();
 
                 if (answer == null)
@@ -141,7 +141,7 @@ namespace TyphoonHil.Communication
             var reqSocket = new RequestSocket();
             reqSocket.Connect($"tcp://localhost:{port}");
 
-            // Optional: tweak options if needed
+            // Tweak options
             reqSocket.Options.Linger = TimeSpan.FromMilliseconds(0);
 
             _requestSockets[port] = reqSocket;
@@ -224,7 +224,7 @@ namespace TyphoonHil.Communication
                 _disposed = true;
             }
 
-            // Optional: cleanup NetMQ global resources
+            // Cleanup NetMQ global resources
             NetMQConfig.Cleanup();
         }
     }
