@@ -723,7 +723,7 @@ namespace TyphoonHil.API
             if (!string.IsNullOrEmpty(rampType)) parameters["ramp_type"] = rampType;
 
             var response = HandleRequest("set_pv_amb_params", parameters);
-            Console.WriteLine($"SetPvAmbParams Response: {response}");
+            // Console.WriteLine($"SetPvAmbParams Response: {response}");
             return new PvAmbRes((JArray)response["result"]);
         }
 
@@ -1459,7 +1459,7 @@ namespace TyphoonHil.API
             if (result == null)
             {
                 // Handle the case when the switch does not exist or any other invalid response
-                Console.WriteLine($"Switch '{switchName}' not found in block '{blockName}' or invalid response.");
+                // Console.WriteLine($"Switch '{switchName}' not found in block '{blockName}' or invalid response.");
                 return null; // Returning null indicates the switch was not found
             }
 

@@ -53,7 +53,7 @@ namespace TyphoonHil.API
             { "parameters", parameters }
         };
             PvResponse res = new PvResponse((JArray)HandleRequest("generate_pv_settings_file", requestParameters)["result"]);
-            Console.WriteLine(res);
+            // Console.WriteLine(res);
             return res;
         }
     }
