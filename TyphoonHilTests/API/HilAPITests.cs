@@ -810,6 +810,39 @@ namespace TyphoonHilTests.API
             Assert.IsTrue(testableApi.HandleRequestOverrideCalled);
         }
 
+        // The server returns [false, [null, null]] when it rejects a SetPvAmbParams
+        // call (e.g. illumination-only ramp on a normalized curve, which requires
+        // isc/voc). The C# wrapper must surface this as Status=false + NaN values
+        // rather than throwing while constructing PvAmbRes.
+        [TestMethod]
+        public void SetPvAmbParams_HandlesNullPowerValuesInResponse()
+        {
+            var api = new HilAPIWithFailureResponse();
+
+            var result = api.SetPvAmbParams("test_pv", illumination: 1000.0);
+
+            Assert.IsNotNull(result);
+            Assert.IsFalse(result.Status);
+            Assert.IsTrue(double.IsNaN(result.MaxPowerCurrent), "Expected MaxPowerCurrent to be NaN when server returns null.");
+            Assert.IsTrue(double.IsNaN(result.MaxPowerVoltage), "Expected MaxPowerVoltage to be NaN when server returns null.");
+        }
+
+        // Stub that mimics a server rejection: [false, [null, null]].
+        private sealed class HilAPIWithFailureResponse : HilAPI
+        {
+            protected override JObject HandleRequest(string method, JObject parameters)
+            {
+                if (method == "set_pv_amb_params")
+                {
+                    return new JObject
+                    {
+                        ["result"] = new JArray(false, new JArray(JValue.CreateNull(), JValue.CreateNull()))
+                    };
+                }
+                return base.HandleRequest(method, parameters);
+            }
+        }
+
         [TestMethod]
         /*[Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]*/
         public void GetPeSwitchingBlockSetting_ShouldReturnNullWhenSwitchNotFound_HIL()

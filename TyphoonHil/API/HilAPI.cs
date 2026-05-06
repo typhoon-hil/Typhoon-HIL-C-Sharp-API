@@ -12,13 +12,16 @@ namespace TyphoonHil.API
     {
         internal PvAmbRes(JArray res)
         {
-            // The first element should be a boolean status.
+            // The first element is a boolean status.
             Status = (bool)res[0];
 
-            // The second element should be an array/tuple containing two double values.
+            // The second element is an array/tuple containing two values.
+            // When the server rejects the call (Status == false) it can return
+            // [null, null] in the second element, so we map nulls to NaN rather
+            // than throwing.
             var powerValues = (JArray)res[1];
-            MaxPowerCurrent = (double)powerValues[0];
-            MaxPowerVoltage = (double)powerValues[1];
+            MaxPowerCurrent = TokenToDouble(powerValues[0]);
+            MaxPowerVoltage = TokenToDouble(powerValues[1]);
         }
 
         public PvAmbRes()
@@ -28,6 +31,13 @@ namespace TyphoonHil.API
         public bool Status { get; set; }
         public double MaxPowerCurrent { get; set; }
         public double MaxPowerVoltage { get; set; }
+
+        private static double TokenToDouble(JToken token)
+        {
+            return token == null || token.Type == JTokenType.Null
+                ? double.NaN
+                : (double)token;
+        }
     }
 
     public class HwInfo
