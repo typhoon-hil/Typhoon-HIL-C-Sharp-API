@@ -12,22 +12,53 @@ namespace TyphoonHil.API
     {
         internal PvAmbRes(JArray res)
         {
-            // The first element should be a boolean status.
+            // The first element is a boolean status.
             Status = (bool)res[0];
 
-            // The second element should be an array/tuple containing two double values.
-            var powerValues = (JArray)res[1];
-            MaxPowerCurrent = (double)powerValues[0];
-            MaxPowerVoltage = (double)powerValues[1];
+            // The second element is an array/tuple containing two values.
+            // When the server rejects the call (Status == false) it can return
+            // [null, null] in the second element, so we map nulls to NaN rather
+            // than throwing.
+            var powerValues = res[1] as JArray;
+            MaxPowerCurrent = TokenToDouble(powerValues?[0]);
+            MaxPowerVoltage = TokenToDouble(powerValues?[1]);
         }
 
         public PvAmbRes()
         {
         }
 
+        // Builds a PvAmbRes from the raw "result" field of a JSON-RPC response.
+        //
+        // The documented shape is [status, [Imp, Vmp]], but several server-side
+        // validation paths bail out with a bare scalar false instead - for
+        // set_pv_amb_params that covers a negative ramp_time, a ramp_time above
+        // the 600 s maximum, an unsupported ramp_type, and a device without
+        // timed-command support. Casting those to JArray threw
+        // InvalidCastException and hid the actual rejection, so anything that
+        // is not the documented array is reported as a plain failed result.
+        internal static PvAmbRes FromResult(JToken result)
+        {
+            if (result is JArray res && res.Count >= 2) return new PvAmbRes(res);
+
+            return new PvAmbRes
+            {
+                Status = result != null && result.Type == JTokenType.Boolean && (bool)result,
+                MaxPowerCurrent = double.NaN,
+                MaxPowerVoltage = double.NaN
+            };
+        }
+
         public bool Status { get; set; }
         public double MaxPowerCurrent { get; set; }
         public double MaxPowerVoltage { get; set; }
+
+        private static double TokenToDouble(JToken token)
+        {
+            return token == null || token.Type == JTokenType.Null
+                ? double.NaN
+                : (double)token;
+        }
     }
 
     public class HwInfo
@@ -691,24 +722,19 @@ namespace TyphoonHil.API
             return (bool)HandleRequest("set_pv_input_file", parameters)["result"];
         }
 
-        /*        public PvAmbRes SetPvAmbParams(string name, double? illumination = null, double? temperature = null,
-                    double? isc = null, double? voc = null, double? executeAt = null, double? rampTime = 0, string rampType = "lin")
-                {
-                    var parameters = new JObject
-                    {
-                        { "name", name },
-                        { "illumination", illumination },
-                        { "temperature", temperature },
-                        { "isc", isc },
-                        { "voc", voc },
-                        { "executeAt", executeAt },
-                        { "ramp_time", rampTime },
-                        { "ramp_type", rampType }
-                    };
-
-                    return new PvAmbRes((JArray)HandleRequest("set_pv_amb_params", parameters)["result"]);
-                }*/
-
+        // Note on ramping. rampTime is counted in simulation seconds, not
+        // wall-clock seconds - on VHIL the two differ by the real-time factor.
+        //
+        // Ramping works on both PV panel implementations, but only the SP-based one
+        // ("Enable SP-based implementation" / sp_enable on the Photovoltaic Panel
+        // mask) can be observed through GetPvMpp. On an FPGA-based panel GetPvMpp
+        // returns the MPP of the configured IV curve computed on the host, and the
+        // curves for the whole ramp are generated up front, so it reports the ramp's
+        // end point from the moment the ramp is scheduled while the device is still
+        // ramping. Read an analog signal from the model to observe such a ramp.
+        //
+        // For Normalized IV curves the ramp applies to isc/voc; illumination and
+        // temperature are not accepted for that curve type.
         public PvAmbRes SetPvAmbParams(string name, double? illumination = null, double? temperature = null,
             double? isc = null, double? voc = null, double? executeAt = null, double? rampTime = 0, string rampType = "lin")
         {
@@ -723,8 +749,7 @@ namespace TyphoonHil.API
             if (!string.IsNullOrEmpty(rampType)) parameters["ramp_type"] = rampType;
 
             var response = HandleRequest("set_pv_amb_params", parameters);
-            // Console.WriteLine($"SetPvAmbParams Response: {response}");
-            return new PvAmbRes((JArray)response["result"]);
+            return PvAmbRes.FromResult(response["result"]);
         }
 
 
@@ -1007,7 +1032,7 @@ namespace TyphoonHil.API
                 { "voltage", voltage }
             };
 
-            return new PvAmbRes((JArray)HandleRequest("read_pv_iv_curve", parameters)["result"]);
+            return PvAmbRes.FromResult(HandleRequest("read_pv_iv_curve", parameters)["result"]);
         }
 
         public double ReadAnalogSignal(string name = "")
@@ -1227,7 +1252,7 @@ namespace TyphoonHil.API
                 { "name", name }
             };
 
-            return new PvAmbRes((JArray)HandleRequest("get_pv_mpp", parameters)["result"]);
+            return PvAmbRes.FromResult(HandleRequest("get_pv_mpp", parameters)["result"]);
         }
 
         public int GetNumOfConnectedHils()
