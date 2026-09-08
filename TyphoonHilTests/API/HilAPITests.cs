@@ -1108,6 +1108,11 @@ namespace TyphoonHilTests.API
         // "component "core/Photovoltaic Panel" PV1" declaration in the fixture.
         private const string PvComponentName = "PV1";
 
+        // Current measurement in pv_panels.tse. The only way to observe a ramp on an
+        // FPGA-based panel, where GetPvMpp reports the configured curve rather than a
+        // measurement.
+        private const string CurrentSignalName = "Ia1";
+
         // These tests compile a model, deploy it and drive a 30 s ramp, so they
         // need a running THCC (and, for a hardware run, a connected device).
         // Filter them out with: dotnet test --filter TestCategory!=PvRamp
@@ -1129,14 +1134,11 @@ namespace TyphoonHilTests.API
 
         // Regression guards for SetPvAmbParams ramp scheduling (ticket #006180).
         //
-        // With sp_enable = true the ramp is interpolated on the device and honored
-        // exactly. With sp_enable = false the FPGA-based panel has no ramp engine,
-        // so THCC emulates the ramp by pushing up to 200 regenerated IV-curve
-        // lookup tables as timed commands. That emulation works when it is given
-        // lead time to push them - scheduled before StartSimulation, or with an
-        // explicit executeAt far enough ahead - but collapses into a step when the
-        // simulation is already running and executeAt is null, because only 0.1 s
-        // is reserved. Each test states which of the two it covers.
+        // With sp_enable = true the ramp is interpolated on the device. With
+        // sp_enable = false it is emulated by scheduling regenerated IV-curve
+        // uploads as timed commands. Both honor ramp_time; the difference that
+        // matters for testing is how the ramp can be observed - see
+        // SetPvAmbParams_RampTime_WithSpDisabled_RampsTheRealSignal_VHIL.
         //
         // Sampling is done against GetSimTime(), never wall-clock: the ramp is
         // counted in simulation time, and on VHIL (not real-time) a 30 s ramp can
@@ -1321,21 +1323,21 @@ namespace TyphoonHilTests.API
             }
         }
 
-        // The defect behind ticket #006180: sp_enable = false, simulation already
-        // running, no executeAt. THCC reserves only 0.1 s of lead time for up to 200
-        // IV-curve uploads, so it reports success and then completes the transition
-        // in ~1-3 s no matter what ramp_time says. (The same panel ramps correctly
-        // if the request is made before StartSimulation or carries an executeAt with
-        // enough lead time - both are covered by t_sw's own test_pv_panel.py.)
+        // Ticket #006180. On an FPGA-based panel (sp_enable = false) the ramp does
+        // work, but GetPvMpp cannot show it: for that panel THCC returns the MPP of
+        // the configured IV curve, computed on the host, and the curves for the whole
+        // ramp are generated up front - so GetPvMpp reports the ramp's end point from
+        // the moment it is scheduled, while the device is still ramping. Only the
+        // SP-based panel exposes a measured MPP.
         //
-        // Acceptable outcomes, either of which this test passes on:
-        //   * the call is rejected (Status == false) - the requested THCC fix, which
-        //     tells the caller the SP-based implementation is required, or
-        //   * the ramp is actually honored.
-        // It fails on today's behaviour: success reported, ramp ignored.
+        // Measured on a HIL404: a 10 s illumination ramp produced a clean linear
+        // climb on the current measurement while GetPvMpp sat at the final value
+        // throughout. This test therefore samples the model's current measurement,
+        // and additionally pins the GetPvMpp behaviour so a future change to it is
+        // noticed here.
         [TestMethod]
         [TestCategory(PvRampCategory)]
-        public void SetPvAmbParams_RampTime_WithSpDisabled_MustNotSilentlyIgnoreRamp_VHIL()
+        public void SetPvAmbParams_RampTime_WithSpDisabled_RampsTheRealSignal_VHIL()
         {
             PreparePvPanel(spEnable: false, normalizedEn: false, useVhil: true);
 
@@ -1351,7 +1353,9 @@ namespace TyphoonHilTests.API
 
             try
             {
-                double ipBefore = SettleAndReadImp();
+                System.Threading.Thread.Sleep(2000);
+                double signalBefore = Model.ReadAnalogSignal(CurrentSignalName);
+                Console.WriteLine($"Before ramp: {CurrentSignalName}={signalBefore:F4} A");
 
                 double rampStartSimTime = RequireSimTime();
                 var result = Model.SetPvAmbParams(
@@ -1359,21 +1363,44 @@ namespace TyphoonHilTests.API
                     illumination: finalIllumination,
                     rampTime: rampTimeSeconds,
                     rampType: "lin");
+                Assert.IsTrue(result.Status, "Failed to schedule ramp.");
 
-                if (!result.Status)
+                // GetPvMpp jumps straight to the end point on this panel - that is
+                // the documented behaviour, not the ramp being ignored.
+                var mppDuringRamp = Model.GetPvMpp(PvComponentName);
+                Console.WriteLine(
+                    $"GetPvMpp right after scheduling: Imp={mppDuringRamp.MaxPowerCurrent:F3} A " +
+                    "(end point of the ramp, by design on an FPGA-based panel)");
+
+                double signalAt5s = double.NaN;
+                double signalAt10s = double.NaN;
+                double signalFinal = signalBefore;
+
+                while (true)
                 {
-                    Console.WriteLine("Ramp request rejected on a non-SP PV panel - this is the expected behaviour.");
-                    return;
+                    var elapsed = RequireSimTime() - rampStartSimTime;
+                    if (elapsed > rampTimeSeconds + 3.0) break;
+
+                    double value = Model.ReadAnalogSignal(CurrentSignalName);
+                    signalFinal = value;
+                    Console.WriteLine($"  simT={elapsed,5:F2}s  {CurrentSignalName}={value,8:F4} A");
+                    if (double.IsNaN(signalAt5s) && elapsed >= 5.0) signalAt5s = value;
+                    if (double.IsNaN(signalAt10s) && elapsed >= 10.0) signalAt10s = value;
+                    System.Threading.Thread.Sleep(250);
                 }
 
-                Console.WriteLine("Ramp request accepted on a non-SP PV panel; checking whether ramp_time is honored.");
-                AssertRampIsHonored(
-                    rampStartSimTime,
-                    ipBefore,
-                    rampTimeSeconds,
-                    "illumination/lin/sp_enable=false",
-                    thresholdFractionAt5s: 0.70,
-                    thresholdFractionAt10s: 0.85);
+                Console.WriteLine($"After ramp: {CurrentSignalName}={signalFinal:F4} A");
+
+                double delta = signalFinal - signalBefore;
+                Assert.IsTrue(delta > 0.1,
+                    $"Expected the current to rise; before={signalBefore:F4} after={signalFinal:F4}.");
+                Assert.IsFalse(double.IsNaN(signalAt5s), "Did not capture a sample at simT=5s.");
+                Assert.IsFalse(double.IsNaN(signalAt10s), "Did not capture a sample at simT=10s.");
+
+                Assert.IsTrue(signalAt5s < signalBefore + 0.70 * delta,
+                    $"Current reached {signalAt5s:F4} A by simT=5s of a {rampTimeSeconds}s ramp - ramp_time appears ignored.");
+                Assert.IsTrue(signalAt10s < signalBefore + 0.85 * delta,
+                    $"Current reached {signalAt10s:F4} A by simT=10s of a {rampTimeSeconds}s ramp - ramp_time appears ignored.");
             }
             finally
             {

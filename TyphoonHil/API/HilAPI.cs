@@ -722,21 +722,19 @@ namespace TyphoonHil.API
             return (bool)HandleRequest("set_pv_input_file", parameters)["result"];
         }
 
-        // Note on ramping. On a PV panel compiled with the SP-based implementation
+        // Note on ramping. rampTime is counted in simulation seconds, not
+        // wall-clock seconds - on VHIL the two differ by the real-time factor.
+        //
+        // Ramping works on both PV panel implementations, but only the SP-based one
         // ("Enable SP-based implementation" / sp_enable on the Photovoltaic Panel
-        // mask) the ramp is interpolated on the device and is exact.
+        // mask) can be observed through GetPvMpp. On an FPGA-based panel GetPvMpp
+        // returns the MPP of the configured IV curve computed on the host, and the
+        // curves for the whole ramp are generated up front, so it reports the ramp's
+        // end point from the moment the ramp is scheduled while the device is still
+        // ramping. Read an analog signal from the model to observe such a ramp.
         //
-        // On an FPGA-based panel the server emulates the ramp by scheduling a
-        // series of IV-curve uploads, which needs lead time to push. Either
-        // schedule the ramp before StartSimulation, or pass executeAt far enough
-        // ahead. Requesting a ramp with executeAt = null while the simulation is
-        // already running leaves too little lead time and the transition collapses
-        // into a step.
-        //
-        // rampTime is counted in simulation seconds, not wall-clock seconds - on
-        // VHIL the two differ by the real-time factor. For Normalized IV curves the
-        // ramp applies to isc/voc; illumination and temperature are not accepted
-        // for that curve type.
+        // For Normalized IV curves the ramp applies to isc/voc; illumination and
+        // temperature are not accepted for that curve type.
         public PvAmbRes SetPvAmbParams(string name, double? illumination = null, double? temperature = null,
             double? isc = null, double? voc = null, double? executeAt = null, double? rampTime = 0, string rampType = "lin")
         {
