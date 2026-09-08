@@ -843,6 +843,125 @@ namespace TyphoonHilTests.API
             }
         }
 
+        // Several server-side validation paths for set_pv_amb_params return a bare
+        // scalar false instead of the documented [status, [Imp, Vmp]] tuple: a
+        // negative ramp_time, a ramp_time above the 600 s maximum, an unsupported
+        // ramp_type, and a device without timed-command support. Casting that
+        // scalar to JArray used to throw InvalidCastException and hide the reason
+        // for the rejection, so it must come back as a plain failed result.
+        [TestMethod]
+        public void SetPvAmbParams_HandlesScalarFalseResponse()
+        {
+            var api = new HilAPIWithScalarFalseResponse();
+
+            var result = api.SetPvAmbParams("test_pv", illumination: 1000.0, rampTime: -5.0);
+
+            Assert.IsNotNull(result);
+            Assert.IsFalse(result.Status);
+            Assert.IsTrue(double.IsNaN(result.MaxPowerCurrent), "Expected MaxPowerCurrent to be NaN when server returns a scalar false.");
+            Assert.IsTrue(double.IsNaN(result.MaxPowerVoltage), "Expected MaxPowerVoltage to be NaN when server returns a scalar false.");
+        }
+
+        // GetPvMpp shares the PvAmbRes wrapper, so it needs the same guard.
+        [TestMethod]
+        public void GetPvMpp_HandlesScalarFalseResponse()
+        {
+            var api = new HilAPIWithScalarFalseResponse();
+
+            var result = api.GetPvMpp("test_pv");
+
+            Assert.IsNotNull(result);
+            Assert.IsFalse(result.Status);
+            Assert.IsTrue(double.IsNaN(result.MaxPowerCurrent));
+            Assert.IsTrue(double.IsNaN(result.MaxPowerVoltage));
+        }
+
+        // A well-formed success response must still be parsed normally after the
+        // scalar-false guard was added.
+        [TestMethod]
+        public void SetPvAmbParams_ParsesSuccessfulResponse()
+        {
+            var api = new HilAPIWithSuccessResponse();
+
+            var result = api.SetPvAmbParams("test_pv", illumination: 1000.0, rampTime: 30.0);
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Status);
+            Assert.AreEqual(5.1404813297031255, result.MaxPowerCurrent, 1e-9);
+            Assert.AreEqual(36.37595921606352, result.MaxPowerVoltage, 1e-9);
+        }
+
+        // Stub that mimics the server bailing out with a bare "result": false.
+        private sealed class HilAPIWithScalarFalseResponse : HilAPI
+        {
+            protected override JObject HandleRequest(string method, JObject parameters)
+            {
+                if (method == "set_pv_amb_params" || method == "get_pv_mpp" || method == "read_pv_iv_curve")
+                {
+                    return new JObject { ["result"] = new JValue(false) };
+                }
+                return base.HandleRequest(method, parameters);
+            }
+        }
+
+        // Stub returning the documented [true, [Imp, Vmp]] shape, using the exact
+        // payload captured from THCC for a honored 100 -> 1000 W/m^2 ramp.
+        private sealed class HilAPIWithSuccessResponse : HilAPI
+        {
+            protected override JObject HandleRequest(string method, JObject parameters)
+            {
+                if (method == "set_pv_amb_params")
+                {
+                    return new JObject
+                    {
+                        ["result"] = new JArray(true, new JArray(5.1404813297031255, 36.37595921606352))
+                    };
+                }
+                return base.HandleRequest(method, parameters);
+            }
+        }
+
+        // The wire payload must carry ramp_time / ramp_type in snake_case, and must
+        // omit the parameters the caller left unset - the server treats a present
+        // null differently from an absent key. This is the guard for the claim we
+        // gave the customer that the C# client sends exactly what the Python API
+        // sends.
+        [TestMethod]
+        public void SetPvAmbParams_SendsRampParametersInSnakeCase()
+        {
+            var api = new HilAPIRecordingParameters();
+
+            api.SetPvAmbParams("PV1", isc: 4.5, rampTime: 120.0, rampType: "lin");
+
+            var sent = api.LastParameters;
+            Assert.IsNotNull(sent, "No request was recorded.");
+            Assert.AreEqual("PV1", (string)sent["name"]);
+            Assert.AreEqual(4.5, (double)sent["isc"], 1e-9);
+            Assert.AreEqual(120.0, (double)sent["ramp_time"], 1e-9);
+            Assert.AreEqual("lin", (string)sent["ramp_type"]);
+
+            Assert.IsFalse(sent.ContainsKey("illumination"), "illumination must be omitted when not specified.");
+            Assert.IsFalse(sent.ContainsKey("temperature"), "temperature must be omitted when not specified.");
+            Assert.IsFalse(sent.ContainsKey("voc"), "voc must be omitted when not specified.");
+            Assert.IsFalse(sent.ContainsKey("executeAt"), "executeAt must be omitted when not specified.");
+            Assert.IsFalse(sent.ContainsKey("rampTime"), "rampTime must not be sent - the server key is ramp_time.");
+            Assert.IsFalse(sent.ContainsKey("rampType"), "rampType must not be sent - the server key is ramp_type.");
+        }
+
+        private sealed class HilAPIRecordingParameters : HilAPI
+        {
+            public JObject LastParameters { get; private set; }
+
+            protected override JObject HandleRequest(string method, JObject parameters)
+            {
+                LastParameters = parameters;
+                return new JObject
+                {
+                    ["result"] = new JArray(true, new JArray(0.0, 0.0))
+                };
+            }
+        }
+
         [TestMethod]
         /*[Ignore("This test is skipped because it requires a specific model to be loaded to HIL.")]*/
         public void GetPeSwitchingBlockSetting_ShouldReturnNullWhenSwitchNotFound_HIL()
@@ -952,87 +1071,22 @@ namespace TyphoonHilTests.API
             Assert.AreEqual(0, result["software_value"].ToObject<int>());
         }
 
+        // Smoke test: schedule a ramp before the simulation starts, then start and
+        // stop it. Only checks that the call chain succeeds - the ramp trajectory
+        // itself is covered by the SetPvAmbParams_RampTime_* tests below.
         [TestMethod()]
+        [TestCategory(PvRampCategory)]
         public void GeneratingRampTest()
         {
-            var api = new HilAPI();
+            PreparePvPanel(spEnable: true, normalizedEn: false, useVhil: true);
 
-            // Path to the TSE model for schematic editor
-            var filePathTse = Path.Combine(ProtectedDataPath, "pv_panel", "pv_panels.tse");
-            if (!File.Exists(filePathTse))
-            {
-                Assert.Fail($"TSE file does not exist at path: {filePathTse}");
-            }
+            const double finalIllumination = 2000.0;
+            const double rampTime = 120.0;
 
-            // Load schematic model
-            var loadResult = SchematicApiModel.Load(filePathTse);
-            if (loadResult == null || loadResult["result"] == null)
-            {
-                Assert.Fail("SchematicApiModel.Load returned null or missing 'result' field.");
-            }
-            Console.WriteLine("Schematic Model loaded successfully.");
-
-            // Read HW settings
-            var hwSettings = SchematicApiModel.GetHwSettings();
-            if (hwSettings == null || hwSettings.Count < 3)
-            {
-                Assert.Fail("Failed to retrieve hardware settings from schematic model.");
-            }
-
-            var device = hwSettings[0]?.ToObject<string>();
-            var config = hwSettings[2]?.ToObject<string>();
-            if (string.IsNullOrEmpty(device) || string.IsNullOrEmpty(config))
-            {
-                Assert.Fail("Invalid hardware settings: missing device or config.");
-            }
-
-            // Apply hardware settings
-            SchematicApiModel.SetModelPropertyValue("hil_device", device);
-            SchematicApiModel.SetModelPropertyValue("hil_configuration_id", config);
-            Console.WriteLine($"Hardware settings applied: device={device}, config={config}");
-
-            // Set component properties
-            SchematicApiModel.SetComponentProperty("PV_Panel1", "Cpv", 5e-4);
-            SchematicApiModel.SetComponentProperty("PV_Panel1", "sp_enable", true);   // FIX: use bool not string
-            SchematicApiModel.SetComponentProperty("PV_Panel1", "initial_voltage", 0.0);
-            SchematicApiModel.SetComponentProperty("PV_Panel1", "execution_rate", 50e-6);
-            Console.WriteLine("Component properties set successfully.");
-
-            // Set model-level property (simulation time step)
-            SchematicApiModel.SetModelPropertyValue("simulation_time_step", 0.5e-6);
-            Console.WriteLine("Model 'simulation_time_step' property set successfully.");
-
-            // Compile the model
-            var isCompiled = SchematicApiModel.Compile();
-            Assert.IsTrue(isCompiled, "Model compilation failed.");
-            Console.WriteLine("Model compiled successfully.");
-
-            // Load compiled model into HIL/VHIL
-            var filePathCpd = Path.Combine(ProtectedDataPath, "pv_panel", "pv_panels Target files", "pv_panels.cpd");
-            if (!File.Exists(filePathCpd))
-            {
-                Assert.Fail($"CPD file does not exist at path: {filePathCpd}");
-            }
-
-            var isModelLoaded = Model.LoadModel(filePathCpd, vhilDevice: true);
-            Assert.IsTrue(isModelLoaded, "Model failed to load into HIL/VHIL.");
-            Console.WriteLine("Compiled model is loaded successfully into HIL/VHIL.");
-
-            // Schedule ramping parameters
-            double initialIllumination = 0.5;
-            double finalIllumination = 2000;
-            double rampTime = 120.0;
-
-            string filePathIpvx = Path.Combine(ProtectedDataPath, "pv_panel", "Jinko_JKM200M-72_EN50530.ipvx");
-            if (!File.Exists(filePathIpvx))
-            {
-                Assert.Fail($"IPVX file does not exist at path: {filePathIpvx}");
-            }
-
-            Model.SetPvInputFile("PV_Panel1", filePathIpvx);
+            Model.SetPvInputFile(PvComponentName, En50530CurvePath());
 
             var rampSetResult = Model.SetPvAmbParams(
-                name: "PV_Panel1",
+                name: PvComponentName,
                 illumination: finalIllumination,
                 rampTime: rampTime,
                 rampType: "lin"
@@ -1043,12 +1097,10 @@ namespace TyphoonHilTests.API
             // Start simulation
             Assert.IsTrue(Model.StartSimulation(), "Failed to start simulation.");
             Assert.IsTrue(Model.IsSimulationRunning(), "Simulation is not running.");
-            Console.WriteLine("Simulation started successfully.");
 
             // Stop simulation
             Assert.IsTrue(Model.StopSimulation(), "Failed to stop simulation.");
             Assert.IsFalse(Model.IsSimulationRunning(), "Simulation is still running.");
-            Console.WriteLine("Simulation stopped successfully.");
         }
 
 
@@ -1056,35 +1108,62 @@ namespace TyphoonHilTests.API
         // "component "core/Photovoltaic Panel" PV1" declaration in the fixture.
         private const string PvComponentName = "PV1";
 
-        // Regression guards for SetPvAmbParams ramp scheduling. Each test kicks off
-        // a 30-second ramp and samples GetPvMpp through the ramp window, asserting
-        // that mid-ramp samples sit clearly below the final value — proving the
-        // ramp_time parameter is being honored and the operating point is not
-        // snapping to the target.
-        [TestMethod]
-        public void SetPvAmbParams_RampTime_Illumination_Linear_ShouldBeHonored_HIL()
+        // These tests compile a model, deploy it and drive a 30 s ramp, so they
+        // need a running THCC (and, for a hardware run, a connected device).
+        // Filter them out with: dotnet test --filter TestCategory!=PvRamp
+        private const string PvRampCategory = "PvRamp";
+
+        private string En50530CurvePath()
         {
-            PreparePvPanelOnVhil(out string filePathIpvx);
+            var path = Path.Combine(ProtectedDataPath, "pv_panel", "Jinko_JKM200M-72_EN50530.ipvx");
+            if (!File.Exists(path)) Assert.Fail($"IPVX file does not exist at path: {path}");
+            return path;
+        }
+
+        private string NormalizedCurvePath()
+        {
+            var path = Path.Combine(ProtectedDataPath, "pv_panel", "IV_Normalized.ipvx");
+            if (!File.Exists(path)) Assert.Fail($"IPVX file does not exist at path: {path}");
+            return path;
+        }
+
+        // Regression guards for SetPvAmbParams ramp scheduling (ticket #006180).
+        //
+        // With sp_enable = true the ramp is interpolated on the device and honored
+        // exactly. With sp_enable = false the FPGA-based panel has no ramp engine,
+        // so THCC emulates the ramp by pushing up to 200 regenerated IV-curve
+        // lookup tables as timed commands. That emulation works when it is given
+        // lead time to push them - scheduled before StartSimulation, or with an
+        // explicit executeAt far enough ahead - but collapses into a step when the
+        // simulation is already running and executeAt is null, because only 0.1 s
+        // is reserved. Each test states which of the two it covers.
+        //
+        // Sampling is done against GetSimTime(), never wall-clock: the ramp is
+        // counted in simulation time, and on VHIL (not real-time) a 30 s ramp can
+        // take considerably longer in wall-clock seconds.
+
+        [TestMethod]
+        [TestCategory(PvRampCategory)]
+        public void SetPvAmbParams_RampTime_Illumination_Linear_ShouldBeHonored_VHIL()
+        {
+            PreparePvPanel(spEnable: true, normalizedEn: false, useVhil: true);
 
             const double initialIllumination = 100.0;
             const double finalIllumination = 1000.0;
             const double rampTimeSeconds = 30.0;
 
             Assert.IsTrue(
-                Model.SetPvInputFile(PvComponentName, filePathIpvx, illumination: initialIllumination, temperature: 25.0),
+                Model.SetPvInputFile(PvComponentName, En50530CurvePath(),
+                    illumination: initialIllumination, temperature: 25.0),
                 "Failed to set PV input file.");
             Assert.IsTrue(Model.StartSimulation(), "Failed to start simulation.");
             Assert.IsTrue(Model.IsSimulationRunning(), "Simulation is not running.");
 
             try
             {
-                System.Threading.Thread.Sleep(2000);
-                var mppBefore = Model.GetPvMpp(PvComponentName);
-                Assert.IsTrue(mppBefore.Status, "GetPvMpp before ramp did not return a valid status.");
-                double ipBefore = mppBefore.MaxPowerCurrent;
-                Console.WriteLine($"Before ramp: Imp={ipBefore:F3} A, Vmp={mppBefore.MaxPowerVoltage:F3} V");
+                double ipBefore = SettleAndReadImp();
 
-                var rampStart = DateTime.UtcNow;
+                double rampStartSimTime = RequireSimTime();
                 var rampSetResult = Model.SetPvAmbParams(
                     name: PvComponentName,
                     illumination: finalIllumination,
@@ -1094,7 +1173,7 @@ namespace TyphoonHilTests.API
                 Console.WriteLine($"Ramp scheduled (lin): illumination {initialIllumination} -> {finalIllumination} W/m^2 over {rampTimeSeconds}s");
 
                 AssertRampIsHonored(
-                    rampStart,
+                    rampStartSimTime,
                     ipBefore,
                     rampTimeSeconds,
                     "illumination/lin",
@@ -1111,30 +1190,28 @@ namespace TyphoonHilTests.API
         // Exercises a different parameter + a different ramp_type to rule out the
         // bug being specific to the illumination + "lin" combination.
         [TestMethod]
-        public void SetPvAmbParams_RampTime_Isc_Exponential_ShouldBeHonored_HIL()
+        [TestCategory(PvRampCategory)]
+        public void SetPvAmbParams_RampTime_Isc_Exponential_ShouldBeHonored_VHIL()
         {
-            PreparePvPanelOnVhil(out string filePathIpvx);
+            PreparePvPanel(spEnable: true, normalizedEn: false, useVhil: true);
 
             const double initialIsc = 2.0;
             const double finalIsc = 9.0;
             const double rampTimeSeconds = 30.0;
 
+            // Voc matches the Voc_ref of the Jinko EN50530 fixture curve (45.6 V).
             Assert.IsTrue(
-                Model.SetPvInputFile(PvComponentName, filePathIpvx,
-                    illumination: 1000.0, temperature: 25.0, isc: initialIsc, voc: 37.0),
+                Model.SetPvInputFile(PvComponentName, En50530CurvePath(),
+                    illumination: 1000.0, temperature: 25.0, isc: initialIsc, voc: 45.6),
                 "Failed to set PV input file.");
             Assert.IsTrue(Model.StartSimulation(), "Failed to start simulation.");
             Assert.IsTrue(Model.IsSimulationRunning(), "Simulation is not running.");
 
             try
             {
-                System.Threading.Thread.Sleep(2000);
-                var mppBefore = Model.GetPvMpp(PvComponentName);
-                Assert.IsTrue(mppBefore.Status, "GetPvMpp before ramp did not return a valid status.");
-                double ipBefore = mppBefore.MaxPowerCurrent;
-                Console.WriteLine($"Before ramp: Imp={ipBefore:F3} A, Vmp={mppBefore.MaxPowerVoltage:F3} V");
+                double ipBefore = SettleAndReadImp();
 
-                var rampStart = DateTime.UtcNow;
+                double rampStartSimTime = RequireSimTime();
                 var rampSetResult = Model.SetPvAmbParams(
                     name: PvComponentName,
                     isc: finalIsc,
@@ -1147,7 +1224,7 @@ namespace TyphoonHilTests.API
                 // early-time thresholds relative to the linear case. If the ramp is
                 // honored at all, at t=5s we should not yet be essentially at target.
                 AssertRampIsHonored(
-                    rampStart,
+                    rampStartSimTime,
                     ipBefore,
                     rampTimeSeconds,
                     "isc/exp",
@@ -1160,9 +1237,160 @@ namespace TyphoonHilTests.API
             }
         }
 
-        // Shared setup for the PV ramp HIL tests. Loads, configures, compiles
-        // and deploys the pv_panels fixture to VHIL. Mirrors GeneratingRampTest.
-        private void PreparePvPanelOnVhil(out string filePathIpvx)
+        // The customer use case from ticket #006180: ramp the operating point of a
+        // Normalized IV curve. Normalized curves are scaled by isc/voc, so the ramp
+        // must be requested on isc - illumination and temperature are not accepted
+        // for this curve type. Requires normalized_en on the panel, which is what
+        // makes the SP-based panel accept the .ipvx at all.
+        [TestMethod]
+        [TestCategory(PvRampCategory)]
+        public void SetPvAmbParams_RampTime_Isc_NormalizedCurve_ShouldBeHonored_VHIL()
+        {
+            PreparePvPanel(spEnable: true, normalizedEn: true, useVhil: true);
+
+            const double initialIsc = 2.0;
+            const double finalIsc = 9.0;
+            const double rampTimeSeconds = 30.0;
+
+            Assert.IsTrue(
+                Model.SetPvInputFile(PvComponentName, NormalizedCurvePath(),
+                    illumination: 1000.0, temperature: 25.0, isc: initialIsc, voc: 45.6),
+                "Failed to set normalized PV input file. Check that normalized_en is enabled on the panel.");
+            Assert.IsTrue(Model.StartSimulation(), "Failed to start simulation.");
+            Assert.IsTrue(Model.IsSimulationRunning(), "Simulation is not running.");
+
+            try
+            {
+                double ipBefore = SettleAndReadImp();
+
+                double rampStartSimTime = RequireSimTime();
+                var rampSetResult = Model.SetPvAmbParams(
+                    name: PvComponentName,
+                    isc: finalIsc,
+                    rampTime: rampTimeSeconds,
+                    rampType: "lin");
+                Assert.IsTrue(rampSetResult.Status,
+                    "Failed to schedule isc ramp on a normalized curve.");
+                Console.WriteLine($"Ramp scheduled (normalized, lin): Isc {initialIsc} -> {finalIsc} A over {rampTimeSeconds}s");
+
+                AssertRampIsHonored(
+                    rampStartSimTime,
+                    ipBefore,
+                    rampTimeSeconds,
+                    "isc/lin/normalized",
+                    thresholdFractionAt5s: 0.70,
+                    thresholdFractionAt10s: 0.85);
+            }
+            finally
+            {
+                Model.StopSimulation();
+            }
+        }
+
+        // A Normalized IV curve has no illumination or temperature dimension - THCC
+        // drops both arguments for that curve type and then rejects the call because
+        // no parameter was specified. The wrapper must report that cleanly instead of
+        // throwing while parsing the response.
+        [TestMethod]
+        [TestCategory(PvRampCategory)]
+        public void SetPvAmbParams_NormalizedCurve_RejectsIlluminationRamp_VHIL()
+        {
+            PreparePvPanel(spEnable: true, normalizedEn: true, useVhil: true);
+
+            Assert.IsTrue(
+                Model.SetPvInputFile(PvComponentName, NormalizedCurvePath(),
+                    illumination: 1000.0, temperature: 25.0, isc: 2.0, voc: 45.6),
+                "Failed to set normalized PV input file.");
+            Assert.IsTrue(Model.StartSimulation(), "Failed to start simulation.");
+
+            try
+            {
+                var result = Model.SetPvAmbParams(
+                    name: PvComponentName,
+                    illumination: 1000.0,
+                    rampTime: 30.0,
+                    rampType: "lin");
+
+                Assert.IsNotNull(result);
+                Assert.IsFalse(result.Status,
+                    "Expected illumination to be rejected for a Normalized IV curve; use isc/voc instead.");
+            }
+            finally
+            {
+                Model.StopSimulation();
+            }
+        }
+
+        // The defect behind ticket #006180: sp_enable = false, simulation already
+        // running, no executeAt. THCC reserves only 0.1 s of lead time for up to 200
+        // IV-curve uploads, so it reports success and then completes the transition
+        // in ~1-3 s no matter what ramp_time says. (The same panel ramps correctly
+        // if the request is made before StartSimulation or carries an executeAt with
+        // enough lead time - both are covered by t_sw's own test_pv_panel.py.)
+        //
+        // Acceptable outcomes, either of which this test passes on:
+        //   * the call is rejected (Status == false) - the requested THCC fix, which
+        //     tells the caller the SP-based implementation is required, or
+        //   * the ramp is actually honored.
+        // It fails on today's behaviour: success reported, ramp ignored.
+        [TestMethod]
+        [TestCategory(PvRampCategory)]
+        public void SetPvAmbParams_RampTime_WithSpDisabled_MustNotSilentlyIgnoreRamp_VHIL()
+        {
+            PreparePvPanel(spEnable: false, normalizedEn: false, useVhil: true);
+
+            const double initialIllumination = 100.0;
+            const double finalIllumination = 1000.0;
+            const double rampTimeSeconds = 30.0;
+
+            Assert.IsTrue(
+                Model.SetPvInputFile(PvComponentName, En50530CurvePath(),
+                    illumination: initialIllumination, temperature: 25.0),
+                "Failed to set PV input file.");
+            Assert.IsTrue(Model.StartSimulation(), "Failed to start simulation.");
+
+            try
+            {
+                double ipBefore = SettleAndReadImp();
+
+                double rampStartSimTime = RequireSimTime();
+                var result = Model.SetPvAmbParams(
+                    name: PvComponentName,
+                    illumination: finalIllumination,
+                    rampTime: rampTimeSeconds,
+                    rampType: "lin");
+
+                if (!result.Status)
+                {
+                    Console.WriteLine("Ramp request rejected on a non-SP PV panel - this is the expected behaviour.");
+                    return;
+                }
+
+                Console.WriteLine("Ramp request accepted on a non-SP PV panel; checking whether ramp_time is honored.");
+                AssertRampIsHonored(
+                    rampStartSimTime,
+                    ipBefore,
+                    rampTimeSeconds,
+                    "illumination/lin/sp_enable=false",
+                    thresholdFractionAt5s: 0.70,
+                    thresholdFractionAt10s: 0.85);
+            }
+            finally
+            {
+                Model.StopSimulation();
+            }
+        }
+
+        // Shared setup for the PV ramp tests. Loads, configures, compiles and
+        // deploys the pv_panels fixture.
+        //
+        // spEnable     - "Enable SP-based implementation". Required for ramp_time.
+        // normalizedEn - "Normalized IV" under "Enable PV model types for SP-based
+        //                implementation". The SP panel only accepts curve types
+        //                whose checkbox was ticked at compile time, and this one
+        //                defaults to false, so a normalized .ipvx is rejected
+        //                without it. The EN50530 checkbox defaults to true.
+        private void PreparePvPanel(bool spEnable, bool normalizedEn, bool useVhil)
         {
             var filePathTse = Path.Combine(ProtectedDataPath, "pv_panel", "pv_panels.tse");
             if (!File.Exists(filePathTse))
@@ -1192,7 +1420,11 @@ namespace TyphoonHilTests.API
             SchematicApiModel.SetModelPropertyValue("hil_configuration_id", config);
 
             SchematicApiModel.SetComponentProperty(PvComponentName, "Cpv", 5e-4);
-            SchematicApiModel.SetComponentProperty(PvComponentName, "sp_enable", true);
+            SchematicApiModel.SetComponentProperty(PvComponentName, "sp_enable", spEnable);
+            SchematicApiModel.SetComponentProperty(PvComponentName, "normalized_en", normalizedEn);
+            // GetPvMpp reads the panel's MPP measurement output, which is off by
+            // default in the fixture.
+            SchematicApiModel.SetComponentProperty(PvComponentName, "mpp_enable", true);
             SchematicApiModel.SetComponentProperty(PvComponentName, "initial_voltage", 0.0);
             SchematicApiModel.SetComponentProperty(PvComponentName, "execution_rate", 50e-6);
             SchematicApiModel.SetModelPropertyValue("simulation_time_step", 0.5e-6);
@@ -1205,21 +1437,40 @@ namespace TyphoonHilTests.API
                 Assert.Fail($"CPD file does not exist at path: {filePathCpd}");
             }
 
-            Assert.IsTrue(Model.LoadModel(filePathCpd, vhilDevice: true), "Model failed to load into HIL/VHIL.");
+            Assert.IsTrue(Model.LoadModel(filePathCpd, vhilDevice: useVhil),
+                useVhil ? "Model failed to load into VHIL." : "Model failed to load into HIL.");
+            Console.WriteLine($"Deployed to {(useVhil ? "VHIL" : "HIL")} with sp_enable={spEnable}, normalized_en={normalizedEn}");
+        }
 
-            filePathIpvx = Path.Combine(ProtectedDataPath, "pv_panel", "Jinko_JKM200M-72_EN50530.ipvx");
-            if (!File.Exists(filePathIpvx))
-            {
-                Assert.Fail($"IPVX file does not exist at path: {filePathIpvx}");
-            }
+        // GetSimTime is the clock the ramp is measured against. It is nullable, so
+        // fail loudly rather than silently comparing against 0.
+        private double RequireSimTime()
+        {
+            var simTime = Model.GetSimTime();
+            Assert.IsNotNull(simTime, "GetSimTime returned null; cannot measure ramp progress.");
+            return simTime.Value;
+        }
+
+        // Lets the operating point settle after the simulation starts, then reads
+        // the baseline Imp.
+        private double SettleAndReadImp()
+        {
+            System.Threading.Thread.Sleep(2000);
+            var mpp = Model.GetPvMpp(PvComponentName);
+            Assert.IsTrue(mpp.Status, "GetPvMpp did not return a valid status. Check that mpp_enable is set on the panel.");
+            Console.WriteLine($"Before ramp: Imp={mpp.MaxPowerCurrent:F3} A, Vmp={mpp.MaxPowerVoltage:F3} V");
+            return mpp.MaxPowerCurrent;
         }
 
         // Polls GetPvMpp through the ramp window, records the trajectory, and
         // asserts that mid-ramp samples are clearly below the final value.
         // A ramp that snaps to the final value early will fail the 5 s / 10 s
         // threshold checks.
+        //
+        // Progress is measured in simulation seconds via GetSimTime, so the same
+        // thresholds hold on VHIL and on hardware.
         private void AssertRampIsHonored(
-            DateTime rampStart,
+            double rampStartSimTime,
             double ipBefore,
             double rampTimeSeconds,
             string label,
@@ -1232,18 +1483,18 @@ namespace TyphoonHilTests.API
 
             while (true)
             {
-                var elapsed = (DateTime.UtcNow - rampStart).TotalSeconds;
+                var elapsed = RequireSimTime() - rampStartSimTime;
                 if (elapsed > rampTimeSeconds + 3.0) break;
 
                 var mpp = Model.GetPvMpp(PvComponentName);
                 if (mpp.Status)
                 {
-                    Console.WriteLine($"  [{label}] t={elapsed,5:F2}s  Imp={mpp.MaxPowerCurrent,7:F3} A  Vmp={mpp.MaxPowerVoltage,7:F3} V");
+                    Console.WriteLine($"  [{label}] simT={elapsed,5:F2}s  Imp={mpp.MaxPowerCurrent,7:F3} A  Vmp={mpp.MaxPowerVoltage,7:F3} V");
                     if (double.IsNaN(ipAt5s)  && elapsed >= 5.0)  ipAt5s  = mpp.MaxPowerCurrent;
                     if (double.IsNaN(ipAt10s) && elapsed >= 10.0) ipAt10s = mpp.MaxPowerCurrent;
                     if (double.IsNaN(ipAt15s) && elapsed >= 15.0) ipAt15s = mpp.MaxPowerCurrent;
                 }
-                System.Threading.Thread.Sleep(500);
+                System.Threading.Thread.Sleep(200);
             }
 
             var mppAfter = Model.GetPvMpp(PvComponentName);
@@ -1258,16 +1509,16 @@ namespace TyphoonHilTests.API
             double thresholdAt5s = ipBefore + thresholdFractionAt5s * delta;
             double thresholdAt10s = ipBefore + thresholdFractionAt10s * delta;
 
-            Console.WriteLine($"[{label}] Thresholds: t=5s < {thresholdAt5s:F3} A, t=10s < {thresholdAt10s:F3} A");
-            Console.WriteLine($"[{label}] Samples:    t=5s = {ipAt5s:F3} A, t=10s = {ipAt10s:F3} A, t=15s = {ipAt15s:F3} A");
+            Console.WriteLine($"[{label}] Thresholds: simT=5s < {thresholdAt5s:F3} A, simT=10s < {thresholdAt10s:F3} A");
+            Console.WriteLine($"[{label}] Samples:    simT=5s = {ipAt5s:F3} A, simT=10s = {ipAt10s:F3} A, simT=15s = {ipAt15s:F3} A");
 
-            Assert.IsFalse(double.IsNaN(ipAt5s),  $"[{label}] Did not capture a sample at t=5s.");
-            Assert.IsFalse(double.IsNaN(ipAt10s), $"[{label}] Did not capture a sample at t=10s.");
+            Assert.IsFalse(double.IsNaN(ipAt5s),  $"[{label}] Did not capture a sample at simT=5s.");
+            Assert.IsFalse(double.IsNaN(ipAt10s), $"[{label}] Did not capture a sample at simT=10s.");
 
             Assert.IsTrue(ipAt5s < thresholdAt5s,
-                $"[{label}] Ramp reached {ipAt5s:F3} A by t=5s of a {rampTimeSeconds}s ramp — ramp_time appears ignored.");
+                $"[{label}] Ramp reached {ipAt5s:F3} A by simT=5s of a {rampTimeSeconds}s ramp - ramp_time appears ignored.");
             Assert.IsTrue(ipAt10s < thresholdAt10s,
-                $"[{label}] Ramp reached {ipAt10s:F3} A by t=10s of a {rampTimeSeconds}s ramp — ramp_time appears ignored.");
+                $"[{label}] Ramp reached {ipAt10s:F3} A by simT=10s of a {rampTimeSeconds}s ramp - ramp_time appears ignored.");
         }
 
 

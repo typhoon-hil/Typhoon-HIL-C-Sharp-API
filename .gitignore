@@ -398,3 +398,9 @@ FodyWeavers.xsd
 *.sln.iml
 /TyphoonHilTests/TestData
 /TestData
+
+# THCC model compilation output inside the pv_panel test fixture. The tests call
+# Compile() themselves, so everything here is regenerated; only the .cpd that
+# LoadModel consumes is tracked.
+TyphoonHilTests/ProtectedData/pv_panel/pv_panels Target files/*
+!TyphoonHilTests/ProtectedData/pv_panel/pv_panels Target files/pv_panels.cpd
