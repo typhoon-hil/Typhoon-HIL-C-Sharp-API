@@ -1019,6 +1019,225 @@ namespace TyphoonHilTests.API
         }
 
 
+        // Component name of the PV panel inside pv_panels.tse. Matches the
+        // "component "core/Photovoltaic Panel" PV1" declaration in the fixture.
+        private const string PvComponentName = "PV1";
+
+        // Regression guards for SetPvAmbParams ramp scheduling. Each test kicks off
+        // a 30-second ramp and samples GetPvMpp through the ramp window, asserting
+        // that mid-ramp samples sit clearly below the final value — proving the
+        // ramp_time parameter is being honored and the operating point is not
+        // snapping to the target.
+        [TestMethod]
+        public void SetPvAmbParams_RampTime_Illumination_Linear_ShouldBeHonored_HIL()
+        {
+            PreparePvPanelOnVhil(out string filePathIpvx);
+
+            const double initialIllumination = 100.0;
+            const double finalIllumination = 1000.0;
+            const double rampTimeSeconds = 30.0;
+
+            Assert.IsTrue(
+                Model.SetPvInputFile(PvComponentName, filePathIpvx, illumination: initialIllumination, temperature: 25.0),
+                "Failed to set PV input file.");
+            Assert.IsTrue(Model.StartSimulation(), "Failed to start simulation.");
+            Assert.IsTrue(Model.IsSimulationRunning(), "Simulation is not running.");
+
+            try
+            {
+                System.Threading.Thread.Sleep(2000);
+                var mppBefore = Model.GetPvMpp(PvComponentName);
+                Assert.IsTrue(mppBefore.Status, "GetPvMpp before ramp did not return a valid status.");
+                double ipBefore = mppBefore.MaxPowerCurrent;
+                Console.WriteLine($"Before ramp: Imp={ipBefore:F3} A, Vmp={mppBefore.MaxPowerVoltage:F3} V");
+
+                var rampStart = DateTime.UtcNow;
+                var rampSetResult = Model.SetPvAmbParams(
+                    name: PvComponentName,
+                    illumination: finalIllumination,
+                    rampTime: rampTimeSeconds,
+                    rampType: "lin");
+                Assert.IsTrue(rampSetResult.Status, "Failed to schedule ramp.");
+                Console.WriteLine($"Ramp scheduled (lin): illumination {initialIllumination} -> {finalIllumination} W/m^2 over {rampTimeSeconds}s");
+
+                AssertRampIsHonored(
+                    rampStart,
+                    ipBefore,
+                    rampTimeSeconds,
+                    "illumination/lin",
+                    thresholdFractionAt5s: 0.70,
+                    thresholdFractionAt10s: 0.85);
+            }
+            finally
+            {
+                Model.StopSimulation();
+            }
+        }
+
+        // Variant: ramp Isc (short-circuit current) with an exponential ramp profile.
+        // Exercises a different parameter + a different ramp_type to rule out the
+        // bug being specific to the illumination + "lin" combination.
+        [TestMethod]
+        public void SetPvAmbParams_RampTime_Isc_Exponential_ShouldBeHonored_HIL()
+        {
+            PreparePvPanelOnVhil(out string filePathIpvx);
+
+            const double initialIsc = 2.0;
+            const double finalIsc = 9.0;
+            const double rampTimeSeconds = 30.0;
+
+            Assert.IsTrue(
+                Model.SetPvInputFile(PvComponentName, filePathIpvx,
+                    illumination: 1000.0, temperature: 25.0, isc: initialIsc, voc: 37.0),
+                "Failed to set PV input file.");
+            Assert.IsTrue(Model.StartSimulation(), "Failed to start simulation.");
+            Assert.IsTrue(Model.IsSimulationRunning(), "Simulation is not running.");
+
+            try
+            {
+                System.Threading.Thread.Sleep(2000);
+                var mppBefore = Model.GetPvMpp(PvComponentName);
+                Assert.IsTrue(mppBefore.Status, "GetPvMpp before ramp did not return a valid status.");
+                double ipBefore = mppBefore.MaxPowerCurrent;
+                Console.WriteLine($"Before ramp: Imp={ipBefore:F3} A, Vmp={mppBefore.MaxPowerVoltage:F3} V");
+
+                var rampStart = DateTime.UtcNow;
+                var rampSetResult = Model.SetPvAmbParams(
+                    name: PvComponentName,
+                    isc: finalIsc,
+                    rampTime: rampTimeSeconds,
+                    rampType: "exp");
+                Assert.IsTrue(rampSetResult.Status, "Failed to schedule ramp.");
+                Console.WriteLine($"Ramp scheduled (exp): Isc {initialIsc} -> {finalIsc} A over {rampTimeSeconds}s");
+
+                // Exponential ramp rises faster early then saturates, so loosen the
+                // early-time thresholds relative to the linear case. If the ramp is
+                // honored at all, at t=5s we should not yet be essentially at target.
+                AssertRampIsHonored(
+                    rampStart,
+                    ipBefore,
+                    rampTimeSeconds,
+                    "isc/exp",
+                    thresholdFractionAt5s: 0.85,
+                    thresholdFractionAt10s: 0.95);
+            }
+            finally
+            {
+                Model.StopSimulation();
+            }
+        }
+
+        // Shared setup for the PV ramp HIL tests. Loads, configures, compiles
+        // and deploys the pv_panels fixture to VHIL. Mirrors GeneratingRampTest.
+        private void PreparePvPanelOnVhil(out string filePathIpvx)
+        {
+            var filePathTse = Path.Combine(ProtectedDataPath, "pv_panel", "pv_panels.tse");
+            if (!File.Exists(filePathTse))
+            {
+                Assert.Fail($"TSE file does not exist at path: {filePathTse}");
+            }
+
+            var loadResult = SchematicApiModel.Load(filePathTse);
+            if (loadResult == null || loadResult["result"] == null)
+            {
+                Assert.Fail("SchematicApiModel.Load returned null or missing 'result' field.");
+            }
+
+            var hwSettings = SchematicApiModel.GetHwSettings();
+            if (hwSettings == null || hwSettings.Count < 3)
+            {
+                Assert.Fail("Failed to retrieve hardware settings from schematic model.");
+            }
+            var device = hwSettings[0]?.ToObject<string>();
+            var config = hwSettings[2]?.ToObject<string>();
+            if (string.IsNullOrEmpty(device) || string.IsNullOrEmpty(config))
+            {
+                Assert.Fail("Invalid hardware settings: missing device or config.");
+            }
+
+            SchematicApiModel.SetModelPropertyValue("hil_device", device);
+            SchematicApiModel.SetModelPropertyValue("hil_configuration_id", config);
+
+            SchematicApiModel.SetComponentProperty(PvComponentName, "Cpv", 5e-4);
+            SchematicApiModel.SetComponentProperty(PvComponentName, "sp_enable", true);
+            SchematicApiModel.SetComponentProperty(PvComponentName, "initial_voltage", 0.0);
+            SchematicApiModel.SetComponentProperty(PvComponentName, "execution_rate", 50e-6);
+            SchematicApiModel.SetModelPropertyValue("simulation_time_step", 0.5e-6);
+
+            Assert.IsTrue(SchematicApiModel.Compile(), "Model compilation failed.");
+
+            var filePathCpd = Path.Combine(ProtectedDataPath, "pv_panel", "pv_panels Target files", "pv_panels.cpd");
+            if (!File.Exists(filePathCpd))
+            {
+                Assert.Fail($"CPD file does not exist at path: {filePathCpd}");
+            }
+
+            Assert.IsTrue(Model.LoadModel(filePathCpd, vhilDevice: true), "Model failed to load into HIL/VHIL.");
+
+            filePathIpvx = Path.Combine(ProtectedDataPath, "pv_panel", "Jinko_JKM200M-72_EN50530.ipvx");
+            if (!File.Exists(filePathIpvx))
+            {
+                Assert.Fail($"IPVX file does not exist at path: {filePathIpvx}");
+            }
+        }
+
+        // Polls GetPvMpp through the ramp window, records the trajectory, and
+        // asserts that mid-ramp samples are clearly below the final value.
+        // A ramp that snaps to the final value early will fail the 5 s / 10 s
+        // threshold checks.
+        private void AssertRampIsHonored(
+            DateTime rampStart,
+            double ipBefore,
+            double rampTimeSeconds,
+            string label,
+            double thresholdFractionAt5s,
+            double thresholdFractionAt10s)
+        {
+            double ipAt5s = double.NaN;
+            double ipAt10s = double.NaN;
+            double ipAt15s = double.NaN;
+
+            while (true)
+            {
+                var elapsed = (DateTime.UtcNow - rampStart).TotalSeconds;
+                if (elapsed > rampTimeSeconds + 3.0) break;
+
+                var mpp = Model.GetPvMpp(PvComponentName);
+                if (mpp.Status)
+                {
+                    Console.WriteLine($"  [{label}] t={elapsed,5:F2}s  Imp={mpp.MaxPowerCurrent,7:F3} A  Vmp={mpp.MaxPowerVoltage,7:F3} V");
+                    if (double.IsNaN(ipAt5s)  && elapsed >= 5.0)  ipAt5s  = mpp.MaxPowerCurrent;
+                    if (double.IsNaN(ipAt10s) && elapsed >= 10.0) ipAt10s = mpp.MaxPowerCurrent;
+                    if (double.IsNaN(ipAt15s) && elapsed >= 15.0) ipAt15s = mpp.MaxPowerCurrent;
+                }
+                System.Threading.Thread.Sleep(500);
+            }
+
+            var mppAfter = Model.GetPvMpp(PvComponentName);
+            Assert.IsTrue(mppAfter.Status, "GetPvMpp after ramp did not return a valid status.");
+            double ipFinal = mppAfter.MaxPowerCurrent;
+            Console.WriteLine($"After ramp [{label}]: Imp={ipFinal:F3} A, Vmp={mppAfter.MaxPowerVoltage:F3} V");
+
+            Assert.IsTrue(ipFinal > ipBefore + 0.1,
+                $"[{label}] Expected final Imp ({ipFinal:F3}) to be clearly above initial Imp ({ipBefore:F3}).");
+
+            double delta = ipFinal - ipBefore;
+            double thresholdAt5s = ipBefore + thresholdFractionAt5s * delta;
+            double thresholdAt10s = ipBefore + thresholdFractionAt10s * delta;
+
+            Console.WriteLine($"[{label}] Thresholds: t=5s < {thresholdAt5s:F3} A, t=10s < {thresholdAt10s:F3} A");
+            Console.WriteLine($"[{label}] Samples:    t=5s = {ipAt5s:F3} A, t=10s = {ipAt10s:F3} A, t=15s = {ipAt15s:F3} A");
+
+            Assert.IsFalse(double.IsNaN(ipAt5s),  $"[{label}] Did not capture a sample at t=5s.");
+            Assert.IsFalse(double.IsNaN(ipAt10s), $"[{label}] Did not capture a sample at t=10s.");
+
+            Assert.IsTrue(ipAt5s < thresholdAt5s,
+                $"[{label}] Ramp reached {ipAt5s:F3} A by t=5s of a {rampTimeSeconds}s ramp — ramp_time appears ignored.");
+            Assert.IsTrue(ipAt10s < thresholdAt10s,
+                $"[{label}] Ramp reached {ipAt10s:F3} A by t=10s of a {rampTimeSeconds}s ramp — ramp_time appears ignored.");
+        }
+
+
         [TestMethod]
         public void StartCapture_ShouldThrow_WhenChSettingsFormatIsInvalid()
         {
