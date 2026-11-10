@@ -14,8 +14,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>Typhoon HIL;typhoon hil;typhoon-hil;typhoon-hil-api;thcc</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>1.1.6</Version>
-    <PackageReleaseNotes>Updated NetMQ dependency to 4.0.4.3 to resolve a known vulnerability (ticket #008188). NetMQ 4.0.4.3 dropped netstandard2.0 support, so the package now targets netstandard2.1.</PackageReleaseNotes>
+    <Version>1.1.7</Version>
+    <PackageReleaseNotes>Updated NetMQ dependency to 4.0.4.5 to resolve a known vulnerability in its transient System.Security.Cryptography.Xml dependency.</PackageReleaseNotes>
 	<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetMQ" Version="4.0.4.3" />
+    <PackageReference Include="NetMQ" Version="4.0.4.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
